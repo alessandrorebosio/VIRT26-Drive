@@ -21,16 +21,63 @@
 \maketitle
 
 \pagenumbering{roman}
+\setstretch{1.25}
 
-% INTRODUZIONE
 \chapter*{Introduzione}
 \label{chap:introduzione}
 \addcontentsline{toc}{chapter}{Introduzione}
-% NOTE: Scrivi circa 1-2 pagine.
-% - Presenta il ruolo del Cloud Storage (es. Google Drive) nella gestione moderna dei dati.
-% - Spiega l'importanza di questi sistemi per la collaborazione e la persistenza dei dati.
-% - Dichiara l'obiettivo della tesina: realizzare un sistema di file sharing scalabile.
-% - Introduci la metodologia: il confronto tra una gestione classica su filesystem e una moderna basata su MinIO.
+Negli ultimi anni, l'evoluzione delle tecnologie digitali ha
+profondamente trasformato le modalità di gestione, archiviazione e
+condivisione dei dati. In questo contesto, il Cloud Storage si è
+affermato come una delle soluzioni più diffuse, consentendo agli
+utenti di memorizzare informazioni su infrastrutture remote
+accessibili tramite Internet. Servizi come Google Drive, Dropbox e
+Microsoft OneDrive rappresentano esempi concreti di questo cambiamento,
+offrendo strumenti efficienti, scalabili e semplici da utilizzare per
+la gestione dei contenuti digitali.
+
+Il cloud computing ha introdotto un cambiamento significativo
+rispetto ai tradizionali sistemi di archiviazione locale. Invece di
+dipendere esclusivamente da dispositivi fisici, come hard disk o
+server aziendali, gli utenti possono accedere ai propri dati in
+qualsiasi momento e da qualsiasi luogo, purché dispongano di una
+connessione alla rete. Questo modello migliora la flessibilità
+operativa e contribuisce a ridurre il rischio di perdita dei dati,
+grazie a meccanismi di backup e ridondanza implementati dai fornitori
+di servizi cloud.
+
+Un aspetto particolarmente rilevante del Cloud Storage è il suo ruolo
+nel favorire la collaborazione tra utenti. Le piattaforme moderne
+permettono a più persone di lavorare simultaneamente sugli stessi
+documenti, facilitando la condivisione in tempo reale e migliorando
+l'efficienza dei processi lavorativi e accademici. La gestione dei
+permessi e la sincronizzazione automatica contribuiscono a rendere
+queste soluzioni strumenti fondamentali in contesti distribuiti.
+
+Parallelamente, la persistenza dei dati rappresenta un elemento
+cruciale nella progettazione di sistemi informatici moderni. Garantire
+che le informazioni rimangano disponibili, integre e accessibili nel
+tempo richiede l'adozione di architetture robuste e affidabili. In
+questo contesto, assumono particolare importanza il modello di
+storage adottato e le modalità con cui i diversi componenti del
+sistema comunicano tra loro.
+
+Alla luce di queste considerazioni, l'obiettivo del presente progetto
+è la progettazione e realizzazione di un sistema di file sharing
+scalabile, ispirato ai principi alla base delle moderne piattaforme
+di Cloud Storage. Il sistema è stato sviluppato adottando
+un'architettura a servizi containerizzati, al fine di garantire
+modularità, isolamento delle componenti e facilità di deployment.
+
+Il lavoro si propone inoltre di approfondire le principali
+problematiche legate alla progettazione di sistemi distribuiti, con
+particolare attenzione alla comunicazione tra container, alla gestione
+dell'autenticazione e alla persistenza dei dati. Attraverso
+l'implementazione del sistema e la valutazione delle sue
+caratteristiche, si intende dimostrare come sia possibile realizzare
+un'infrastruttura di file sharing che, pur in un contesto semplificato,
+rifletta le logiche e i requisiti dei sistemi utilizzati in ambito
+reale.
 
 \tableofcontents
 
@@ -43,93 +90,230 @@
 \label{cap:obiettivi}
 
 \section{Requisiti Funzionali}
-% Descrivi le funzionalità core: upload/download dei file, registrazione e login utenti.
+% Descrivere le funzionalità offerte:
+% - registrazione e autenticazione utenti
+% - upload e download file
+% - gestione dei file per utente
+% Specificare attori, input e output.
 
 \section{Requisiti Non Funzionali}
-% Focalizzati su sicurezza (protezione dei dati), scalabilità e manutenibilità del codice.
+% Analizzare:
+% - sicurezza (autenticazione, autorizzazione)
+% - scalabilità (gestione carico e crescita utenti)
+% - affidabilità (consistenza dati)
+% - manutenibilità (modularità e separazione servizi)
 
 \section{Vincoli Tecnologici}
-% Menziona l'uso di Docker per la containerizzazione e il limite temporale di sviluppo (2 settimane).
+% Descrivere:
+% - uso di Docker per la containerizzazione
+% - architettura a servizi separati
+% - limite temporale (2 settimane)
+% - tecnologie adottate (Node.js, React, PostgreSQL)
 
 % CAPITOLO 2
 \chapter{Architettura del Sistema}
 \label{cap:architettura}
 
-\section{Componenti del Sistema}
-% Descrivi il tech stack: Frontend (React), Backend (Node.js), Database (PostgreSQL).
+\section{Architettura a Container}
+% Descrivere ogni container:
+% - backend (Node.js): logica applicativa
+% - database (PostgreSQL): persistenza dati
+% - storage (filesystem o MinIO): gestione file
+% - reverse proxy (Nginx): instradamento richieste
+% - frontend (React): interfaccia utente
+% Per ciascuno specificare:
+% - ruolo
+% - responsabilità
+% - dipendenze
+
+\section{Comunicazione tra Container}
+% Descrivere:
+% - rete Docker
+% - comunicazione tramite hostname
+% - porte interne vs esterne
+% Spiegare i flussi principali:
+% browser → Nginx → backend → DB / storage
 
 \section{Infrastruttura e Networking}
-% Spiega il ruolo di Nginx come Reverse Proxy e la comunicazione tra i container Docker.
+% Approfondire:
+% - ruolo di Nginx come reverse proxy
+% - gestione delle richieste HTTP
+% - separazione tra rete interna ed esterna
 
 \section{Diagramma Architetturale}
-% Inserisci qui il riferimento al diagramma che mostra l'interazione tra i moduli.
-% 
+% Inserire un diagramma che mostri:
+% - tutti i container
+% - connessioni tra di essi
+% - flussi di dati
+% Evidenziare chiaramente DB, backend, storage e proxy.
 
 % CAPITOLO 3
+\chapter{Containerizzazione e Deployment}
+\label{cap:docker}
+
+\section{Struttura dei Container}
+% Descrivere:
+% - immagini Docker utilizzate
+% - configurazione dei servizi
+% - dipendenze tra container
+
+\section{Orchestrazione con Docker Compose}
+% Spiegare:
+% - come vengono avviati i servizi
+% - definizione delle reti
+% - collegamento tra container
+
+\section{Gestione dei Volumi}
+% Descrivere:
+% - persistenza dati PostgreSQL
+% - persistenza storage (filesystem / MinIO)
+% - differenza tra volumi e storage effimero
+
+\section{Vantaggi della Containerizzazione}
+% Analizzare:
+% - isolamento dei servizi
+% - portabilità
+% - facilità di deployment
+% - confronto con architettura monolitica
+
+% CAPITOLO 4
 \chapter{Protocolli e Tecnologie Utilizzate}
 \label{cap:protocolli}
 
-\section{Comunicazione REST e Protocollo HTTP}
-% Spiega l'uso di HTTP per le API e la gestione dei file tramite multipart/form-data.
+\section{Comunicazione HTTP e REST}
+% Descrivere:
+% - uso di HTTP per le API
+% - architettura REST
+% - metodi principali (GET, POST)
+% - upload file tramite multipart/form-data
+
+\section{Comunicazione tra Servizi}
+% Descrivere:
+% - comunicazione backend → database
+% - comunicazione backend → storage
+% - uso di API S3 nel caso MinIO
 
 \section{Persistenza dei Dati}
-% Introduci la differenza concettuale tra memorizzazione gerarchica (FS) e piatta (Object Storage).
+% Confrontare:
+% - filesystem (struttura gerarchica)
+% - object storage (bucket e oggetti)
+% Evidenziare differenze in accesso e scalabilità.
 
-% CAPITOLO 4
+% CAPITOLO 5
 \chapter{Gestione Utenti e Autenticazione}
 \label{cap:autenticazione}
 
 \section{Modello di Autenticazione JWT}
-% Spiega come funziona il JSON Web Token per mantenere la sessione stateless.
+% Descrivere:
+% - generazione token
+% - validazione
+% - sessione stateless
+% Inserire diagramma di sequenza del login.
 
 \section{Sicurezza delle Credenziali}
-% Descrivi l'hashing delle password (es. bcrypt) e il controllo degli accessi (Authorization).
+% Spiegare:
+% - hashing password (bcrypt)
+% - autorizzazione accessi
+% - protezione delle risorse
 
-% CAPITOLO 5
+% CAPITOLO 6
 \chapter{Implementazione v1: Storage su Filesystem}
 \label{cap:v1_filesystem}
 
 \section{Struttura delle Directory}
-% Descrivi come il backend organizza i file localmente sul server.
+% Descrivere:
+% - organizzazione file su disco
+% - mapping DB ↔ filesystem
 
-\section{Limiti della Soluzione Baseline}
-% Analizza le criticità: difficoltà di scaling orizzontale e rischi di corruzione del filesystem locale.
+\section{Flusso Operativo}
+% Descrivere il flusso completo:
+% upload:
+% browser → Nginx → backend → filesystem → DB
+% download:
+% backend → filesystem → utente
+% Inserire diagramma di sequenza.
 
-% CAPITOLO 6
+\section{Limiti della Soluzione}
+% Analizzare:
+% - scalabilità limitata
+% - dipendenza dal nodo locale
+% - gestione concorrente
+
+% CAPITOLO 7
 \chapter{Implementazione v2: Storage Remoto con MinIO}
 \label{cap:v2_minio}
 
 \section{Introduzione all'Object Storage}
-% Spiega cos'è MinIO e la compatibilità con le API S3 di Amazon.
+% Descrivere:
+% - concetto di bucket
+% - oggetti
+% - compatibilità con API S3
 
-\section{Integrazione Backend e S3 SDK}
-% Descrivi come il backend interagisce con il bucket remoto per le operazioni di I/O.
+\section{Estensione dello Schema Dati}
+% Presentare schema ER:
+% - entità User
+% - entità File
+% - entità Bucket
+% Relazioni:
+% - User → File
+% - File → Bucket
+% Spiegare come cambia la gestione dei file.
 
-% CAPITOLO 7
+\section{Integrazione con Storage Remoto}
+% Descrivere:
+% - uso SDK S3
+% - operazioni upload/download/delete
+% - gestione credenziali
+
+\section{Flusso Operativo}
+% Descrivere:
+% upload:
+% browser → Nginx → backend → MinIO → DB
+% download:
+% backend → MinIO → utente
+% Evidenziare differenze rispetto alla v1.
+
+% CAPITOLO 8
 \chapter{Confronto e Valutazione delle Prestazioni}
 \label{cap:confronto}
 
 \section{Analisi Qualitativa}
-% Inserisci una tabella comparativa su flessibilità, sicurezza e semplicità di gestione.
+% Confrontare filesystem vs object storage:
+% - scalabilità
+% - sicurezza
+% - flessibilità
+% - complessità
 
-\section{Test di Carico e Risultati}
-% Riporta i tempi di risposta misurati per upload di file di diverse dimensioni (small vs large).
+\section{Test di Prestazione}
+% Descrivere:
+% - metodologia
+% - dimensioni file
+% - tempi di risposta
+% Confrontare v1 e v2.
 
-% CAPITOLO 8
+% CAPITOLO 9
 \chapter{Possibili Estensioni e Visione Futura}
 \label{cap:estensioni}
 
-\section{Versioning e Condivisione}
-% Come implementare il controllo di versione dei file e i link di condivisione pubblica/privata.
+\section{Gestione Permessi}
+% Descrivere:
+% - accessi ai file
+% - condivisione tra utenti
 
-\section{Migrazione su Cloud Reale}
-% Discuti la transizione da MinIO locale ad Amazon S3 o Google Cloud Storage.
+\section{Scalabilità e Cloud}
+% Descrivere:
+% - migrazione verso cloud reale
+% - sostituzione MinIO con servizi come Amazon S3
+% - vantaggi e criticità
 
-% CONCLUSIONE
+% CONCLUSIONI
 \chapter*{Conclusioni}
 \addcontentsline{toc}{chapter}{Conclusioni}
-% Riassumi l'esperienza: cosa hai imparato sulla gestione dei flussi binari e sui vantaggi dell'object storage.
-% Concludi confermando come la v2 risolva i limiti strutturali della v1.
+% Riassumere:
+% - obiettivi raggiunti
+% - differenze tra filesystem e object storage
+% - vantaggi della containerizzazione
+% - competenze acquisite (sistemi distribuiti, sicurezza, architettura)
 
 \bibliographystyle{plain}
 % \bibliography{report}
