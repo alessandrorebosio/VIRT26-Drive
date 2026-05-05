@@ -1,7 +1,17 @@
-
 name: cloud
 
 services:
+  proxy:
+    container_name: cloud_nginx
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    restart: unless-stopped
+
   web:
     container_name: cloud_web
     build:
@@ -29,7 +39,7 @@ services:
     shm_size: 128mb
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -43,7 +53,7 @@ services:
     volumes:
       - ${REDIS_DATA_LOCATION}:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
