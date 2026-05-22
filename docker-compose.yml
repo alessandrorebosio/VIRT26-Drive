@@ -1,0 +1,20 @@
+name: drive-prod
+
+services:
+  nginx:
+    container_name: nginx-proxy
+    image: nginx:alpine
+    ports:
+      - "${NGINX_PORT}:80"
+    volumes:
+      - ./proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  web:
+    container_name: web-app
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    restart: unless-stopped
