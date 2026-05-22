@@ -25,8 +25,171 @@
 }
 \date{\today}
 
+
 \maketitle
 
+\pagenumbering{roman}
+\setstretch{1.25}
+
+\chapter*{Introduzione}
+\label{chap:introduzione}
+\addcontentsline{toc}{chapter}{Introduzione}
+
+\setstretch{1}
 \tableofcontents
+
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\setstretch{1.25}
+
+% CHAPTER 1
+\chapter{Obiettivi e Requisiti di Progetto}
+\label{cap:obiettivi}
+
+\section{Requisiti Funzionali}
+% Descrivere le funzionalità offerte:
+% - registrazione e autenticazione utenti
+% - upload e download file
+% - gestione dei file per utente
+% Specificare attori, input e output.
+
+\section{Requisiti Non Funzionali}
+% Analizzare:
+% - sicurezza (autenticazione, autorizzazione)
+% - scalabilità (gestione carico e crescita utenti)
+% - affidabilità (consistenza dati)
+% - manutenibilità (modularità e separazione servizi)
+
+\section{Vincoli Tecnologici}
+% Descrivere:
+% - uso di Docker per la containerizzazione
+% - architettura a servizi separati
+% - tecnologie adottate (Node.js, React, PostgreSQL)
+
+% CHAPTER 2
+\chapter{Architettura del Sistema}
+\label{cap:architettura}
+
+\section{Architettura a Container}
+% Descrivere ogni container
+% Per ciascuno specificare:
+% - ruolo
+% - responsabilità
+% - dipendenze
+
+\section{Comunicazione tra Container}
+% Descrivere:
+% - rete Docker
+% - comunicazione tramite hostname
+% - porte interne vs esterne
+% Spiegare i flussi principali:
+% browser → Nginx → backend → DB / storage
+
+\section{Infrastruttura e Networking}
+% Approfondire:
+% - ruolo di Nginx come reverse proxy
+% - gestione delle richieste HTTP
+% - separazione tra rete interna ed esterna
+
+\section{Diagramma Architetturale}
+% Inserire un diagramma che mostri:
+% - tutti i container
+% - database
+% - connessioni tra di essi
+% - flussi di dati
+% Evidenziare chiaramente DB, backend, storage e proxy.
+
+% CHAPTER 3
+\chapter{Containerizzazione e Deployment}
+\label{cap:docker}
+
+\section{Struttura dei Container}
+% Descrivere:
+% - immagini Docker utilizzate
+% - configurazione dei servizi
+% - dipendenze tra container
+
+\section{Orchestrazione con Docker Compose}
+% Spiegare:
+% - come vengono avviati i servizi
+% - definizione delle reti
+% - collegamento tra container
+
+\section{Gestione dei Volumi}
+% Descrivere:
+% - persistenza dati PostgreSQL
+% - persistenza storage (filesystem / MinIO)
+% - differenza tra volumi e storage effimero
+
+\section{Vantaggi della Containerizzazione}
+% Analizzare:
+% - isolamento dei servizi
+% - portabilità
+% - facilità di deployment
+% - confronto con architettura monolitica
+
+% CHAPTER 4
+\chapter{Protocolli e Tecnologie Utilizzate}
+\label{cap:protocolli}
+
+\section{Comunicazione HTTP e REST}
+% Descrivere:
+% - uso di HTTP per le API
+% - architettura REST
+% - metodi principali (GET, POST)
+% - upload file tramite multipart/form-data
+
+\section{Comunicazione tra Servizi}
+% Descrivere:
+% - comunicazione backend → database
+% - comunicazione backend → storage
+% - uso di API S3 nel caso MinIO
+
+\section{Persistenza dei Dati}
+% Confrontare:
+% - filesystem (struttura gerarchica)
+% - object storage (bucket e oggetti)
+% Evidenziare differenze in accesso e scalabilità.
+
+% CHAPTER 5
+\chapter{Gestione Utenti e Autenticazione}
+\label{cap:autenticazione}
+
+\section{Modello di Autenticazione JWT}
+% Descrivere:
+% - generazione token
+% - validazione
+% - sessione stateless
+% Inserire diagramma di sequenza del login.
+
+\section{Sicurezza delle Credenziali}
+% Spiegare:
+% - hashing password (bcrypt)
+% - autorizzazione accessi
+% - protezione delle risorse
+
+% CHAPTER 6
+\chapter{Possibili Estensioni e Visione Futura}
+\label{cap:estensioni}
+
+\section{Gestione Permessi}
+% Descrivere:
+% - accessi ai file
+% - condivisione tra utenti
+
+\section{Scalabilità e Cloud}
+% Descrivere:
+% - migrazione verso cloud reale
+% - vantaggi e criticità
+
+% CONCLUSIONI
+\chapter*{Conclusioni}
+\addcontentsline{toc}{chapter}{Conclusioni}
+% Riassumere:
+% - obiettivi raggiunti
+% - differenze tra filesystem e object storage
+% - vantaggi della containerizzazione
+% - competenze acquisite (sistemi distribuiti, sicurezza, architettura)
 
 \end{document}
