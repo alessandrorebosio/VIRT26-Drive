@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { FileRecord } from "@/hooks/use-files"
 import { Button } from "@/components/ui/button"
-import { RotateCcw, FileText, Trash2 } from "lucide-react"
+import { RotateCcw, FileText, Trash2, Folder } from "lucide-react"
 import { formatBytes } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
@@ -15,11 +15,16 @@ export const getColumns = (
         accessorKey: "name",
         header: "Name",
         cell: ({ row }) => {
+            const file = row.original
             return (
                 <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium truncate max-w-[200px]" title={row.getValue("name")}>
-                        {row.getValue("name")}
+                    {file.is_folder ? (
+                        <Folder className="h-4 w-4 text-primary fill-primary/20" />
+                    ) : (
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className="font-medium truncate max-w-50" title={file.name}>
+                        {file.name}
                     </span>
                 </div>
             )
@@ -29,6 +34,8 @@ export const getColumns = (
         accessorKey: "size",
         header: "Size",
         cell: ({ row }) => {
+            const file = row.original
+            if (file.is_folder) return <div className="text-muted-foreground">-</div>
             return <div className="text-muted-foreground">{formatBytes(row.getValue("size"))}</div>
         },
     },
