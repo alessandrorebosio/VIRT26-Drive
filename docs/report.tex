@@ -379,17 +379,96 @@ cloud \textit{enterprise} come Kubernetes o AWS ECS.
 \label{cap:autenticazione}
 
 \section{Modello di Autenticazione JWT}
-% Descrivere:
-% - generazione token
-% - validazione
-% - sessione stateless
-% Inserire diagramma di sequenza del login.
+Il sistema adotta un modello di autenticazione stateless basato su
+JSON Web Tokens (JWT), una scelta che garantisce elevata scalabilità
+e sicurezza nelle applicazioni web moderne. Il processo ha inizio
+quando l'utente inserisce le proprie credenziali nell'interfaccia di
+login; queste vengono inviate al servizio di autenticazione, il
+quale, previa verifica, genera un token firmato digitalmente.
 
-\section{Sicurezza delle Credenziali}
-% Spiegare:
-% - hashing password (bcrypt)
-% - autorizzazione accessi
-% - protezione delle risorse
+Il token contiene i \textit{claims} dell'utente, ovvero informazioni
+non sensibili come l'identificatore univoco (UID) e la scadenza della
+sessione. Una volta ricevuto, il client memorizza il JWT, tipicamente
+all'interno di cookie sicuri gestiti tramite il middleware di
+Next.js, e lo include automaticamente negli header di ogni successiva
+richiesta verso il backend. Questo approccio permette al server di
+validare l'identità dell'utente senza dover interrogare continuamente
+il database per verificare lo stato della sessione, riducendo
+drasticamente il carico computazionale e permettendo una gestione
+fluida degli accessi anche in presenza di un numero elevato di utenti
+simultanei.
+
+\newpage
+\section{Il Servizio di Autenticazione GoTrue}
+\label{sec:gotrue}
+All'interno dell'ecosistema Supabase, l'infrastruttura di gestione
+delle identità è interamente affidata a \textbf{GoTrue}, un'API
+basata su protocollo HTTP scritta in Go, specificamente progettata
+per gestire l'autenticazione stateless e l'emissione di token JWT.
+GoTrue funge da intermediario tra il front-end in Next.js e il
+database PostgreSQL, isolando la logica di gestione degli account dal
+resto dell'applicazione.
+
+Il funzionamento del servizio si articola in diverse fasi cruciali
+per la sicurezza dell'intero sistema:
+\begin{itemize}
+  \item \textbf{Registrazione e Validazione:} Quando un nuovo utente
+    si registra, GoTrue riceve le credenziali, applica i meccanismi
+    di hashing e inserisce il nuovo record all'interno dello schema
+    isolato \texttt{auth} di PostgreSQL. Questo schema è protetto e
+    separato da quello pubblico (\texttt{public}), risultando
+    invisibile di default alle normali query dell'applicazione.
+  \item \textbf{Emissione e Rinnovo dei Token:} In fase di login, a
+    seguito della verifica delle credenziali, GoTrue genera una
+    coppia di token: un \textit{Access Token} (il JWT vero e proprio,
+    con validità temporale limitata a breve termine) e un
+    \textit{Refresh Token}.
+  \item \textbf{Integrazione Nativa con Postgres:} L'aspetto più
+    rilevante di GoTrue risiede nella sua profonda integrazione con
+    il motore del database. Ogni volta che genera un JWT, include nel
+    payload il ruolo dell'utente (di base impostato su
+    \texttt{authenticated}) e il suo \textit{Universally Unique
+    Identifier} (UUID). Quando il client effettua una richiesta a
+    Supabase, l'infrastruttura estrae questi parametri dal token e li
+    imposta nel contesto della transazione PostgreSQL tramite le
+    variabili di configurazione della sessione (\textit{GUC - Grand
+    Unified Configuration}), rendendoli immediatamente disponibili al
+    sistema dei permessi.
+\end{itemize}
+
+Questo livello di astrazione consente di delegare interamente flussi
+complessi, quali il recupero della password, la verifica
+dell'indirizzo email e la gestione delle sessioni concorrenti, a un
+microservizio specializzato e sicuro, riducendo sensibilmente la
+superficie di attacco del backend.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\textwidth]{img/auth.png}
+  \caption{Diagramma del flusso di autenticazione e accesso ai dati con GoTrue}
+  \label{fig:gotrue_auth_flow}
+\end{figure}
+
+\section{Sicurezza delle Credenziali e Protezione dei Dati}
+La protezione delle credenziali e dei dati sensibili rappresenta il
+cuore della politica di sicurezza del progetto. Le password non
+vengono mai memorizzate in chiaro nel database PostgreSQL; il
+servizio GoTrue utilizza l'algoritmo bcrypt per generare un hash
+crittografico irreversibile, arricchito da un valore di \textit{salt}
+specifico per ogni record al fine di prevenire attacchi basati su
+tabelle precomputate (rainbow tables).
+
+Oltre alla sicurezza delle credenziali, il sistema implementa un
+rigoroso meccanismo di autorizzazione basato sulle Row Level Security
+(RLS) di PostgreSQL, che agisce direttamente a livello di database
+filtrando ogni query in base all'identità contenuta nel JWT
+dell'utente. Di conseguenza, anche se un malintenzionato tentasse di
+accedere a risorse altrui manipolando i parametri lato client (come
+l'ID di un file in una richiesta HTTP), il database stesso negherebbe
+l'accesso: le policy applicate consentono infatti le operazioni sui
+record solo se l'ID del proprietario corrisponde esattamente all'UUID
+dell'utente estratto dal token, garantendo una compartimentazione
+totale dei dati.
 
 % CHAPTER 6
 \chapter{Possibili Estensioni e Visione Futura}
