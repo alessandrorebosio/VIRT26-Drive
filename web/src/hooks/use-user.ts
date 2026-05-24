@@ -1,53 +1,69 @@
 "use client"
 
 import { createClient } from "@/lib/supabase/client"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { User } from "@supabase/supabase-js"
 
 /**
- * Object returned by the `useUser` hook.
- * * @typedef {Object} UseUserResult
- * @property {User | null} user - The authenticated Supabase user object, or null if not logged in.
- * @property {boolean} loading - Indicates whether the authentication state is currently being fetched.
- * @property {string} displayName - A user-friendly name derived from metadata, email, or a default fallback.
- */
-
-/**
- * Custom React hook to retrieve and manage the current authenticated user's state.
- * Encapsulates Supabase authentication logic, loading states, and provides
- * a formatted display name for the user.
- * * @returns {UseUserResult} An object containing the user object, loading status, and display name.
+ * Custom React hook to manage authentication user state and corresponding profile data.
+ * Automatically fetches data on mount and provides a manual refresh trigger.
+ * * @returns {Object} An object containing the authentication and profile states.
+ * @returns {User | null} return.user - The Supabase Auth user object, or null if unauthenticated.
+ * @returns {{ username: string | null; role: string } | null} return.profile - The user's profile information from the database.
+ * @returns {boolean} return.loading - Flag indicating whether the data fetching is in progress.
+ * @returns {string} return.displayName - A fallback-safe user-friendly name resolved from profile, metadata, or email.
+ * @returns {() => Promise<void>} return.refresh - Function to manually re-fetch user and profile data.
  */
 export function useUser() {
     const [user, setUser] = useState<User | null>(null)
+    const [profile, setProfile] = useState<{ username: string | null; role: string } | null>(null)
     const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const supabase = createClient()
-
-        /**
-         * Fetches the current session user from Supabase auth.
-         * Updates the user state and terminates the loading phase.
-         * * @async
-         * @returns {Promise<void>}
-         */
-        const getUser = async () => {
-            const { data: { user }, error } = await supabase.auth.getUser()
-            if (!error) {
-                setUser(user)
-            }
-            setLoading(false)
-        }
-
-        getUser()
-    }, [])
+    const supabase = createClient()
 
     /**
-     * Resolves a user-friendly display name from metadata or email.
-     * Fallback order: full_name -> email prefix -> "User"
-     * * @type {string}
+     * Fetches the current authenticated user and their profile data from Supabase.
+     * * @async
+     * @function getUser
+     * @returns {Promise<void>}
      */
-    const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"
+    const getUser = useCallback(async () => {
+        setLoading(true)
+        try {
+            const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
+            
+            if (authError) throw authError
 
-    return { user, loading, displayName }
+            if (authUser) {
+                setUser(authUser)
+                
+                const { data: profileData, error: profileError } = await supabase
+                    .from("profiles")
+                    .select("username, role")
+                    .eq("id", authUser.id)
+                    .single()
+                
+                if (!profileError) {
+                    setProfile(profileData)
+                }
+            } else {
+                setUser(null)
+                setProfile(null)
+            }
+        } catch (error) {
+            console.error("Error fetching user/profile:", error)
+        } finally {
+            setLoading(false)
+        }
+    }, [supabase])
+
+    useEffect(() => {
+        getUser()
+    }, [getUser])
+
+    /**
+     * Resolves a user-friendly display name.
+     */
+    const displayName = profile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"
+
+    return { user, profile, loading, displayName, refresh: getUser }
 }

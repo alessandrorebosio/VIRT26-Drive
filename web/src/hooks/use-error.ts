@@ -1,44 +1,47 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 /**
- * Custom React hook that listens to specific URL search parameters (`error` or `message`),
- * triggers a client-side toast notification if found, and cleanly strips those parameters
- * from the browser's URL bar without triggering a page reload.
- * * @example
- * // If URL is: /dashboard?error=Access%20Denied
- * useErrorToast();
- * // Action: Shows toast.error("Access Denied") and updates URL to /dashboard
- * * @returns {void} This hook does not return any value.
+ * Custom React hook that listens for error parameters in both the URL query string 
+ * and URL hash fragment. If an error is detected, it displays a toast notification 
+ * and automatically cleans up the URL parameters to prevent repeated toasts on refresh.
+ *
+ * @returns {void}
  */
 export function useErrorToast(): void {
-	const searchParams = useSearchParams();
-	const router = useRouter();
-	const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
 
-	useEffect(() => {
-		const hashParams = new URLSearchParams(typeof window !== "undefined" ? window.location.hash.slice(1) : "");
+    useEffect(() => {
+        if (typeof window === "undefined") return;
 
-		const finalError =
-			searchParams.get("error_description") || searchParams.get("error") || searchParams.get("message") ||
-			hashParams.get("error_description") || hashParams.get("error") || hashParams.get("message");
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        const errorKeys = ["error_description", "error", "message", "error_code"];
 
-		if (!finalError) return;
+        let rawError = "";
+        for (const key of errorKeys) {
+            const val = searchParams.get(key) || hashParams.get(key);
+            if (val) { rawError = val; break; }
+        }
 
-		console.error(finalError)
-		toast.error(decodeURIComponent(finalError.replace(/\+/g, " ")));
+        if (!rawError) return;
 
-		const cleanParams = new URLSearchParams(searchParams.toString());
-		["error", "message", "error_description", "error_code"].forEach(p => cleanParams.delete(p));
+        const message = decodeURIComponent(rawError.replace(/\+/g, " "));
+        toast.error(message);
 
-		const queryString = cleanParams.toString();
-		const newUrl = `${pathname}${queryString ? `?${queryString}` : ""}`;
+        const url = new URL(window.location.href);
+        errorKeys.forEach(key => {
+            url.searchParams.delete(key);
+            hashParams.delete(key);
+        });
 
-		window.history.replaceState(null, "", newUrl);
-		router.refresh();
+        const newHash = hashParams.toString();
+        url.hash = newHash ? `#${newHash}` : "";
 
-	}, [searchParams, router, pathname]);
+        window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+        
+    }, [searchParams, pathname]);
 }

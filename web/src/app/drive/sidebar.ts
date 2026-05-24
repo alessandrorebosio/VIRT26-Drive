@@ -1,10 +1,16 @@
-import { Home, Trash2 } from "lucide-react";
+import { Home, Trash2, Users2 } from "lucide-react";
 
 /**
  * The base URL path for all drive-related navigation items.
  * @type {string}
  */
 export const baseUrl = "/drive";
+
+/**
+ * The account URL path for all drive-related navigation items.
+ * @type {string}
+ */
+export const accountUrl = `${baseUrl}/account`
 
 /**
  * Shape of an individual navigation item.
@@ -17,22 +23,27 @@ export const baseUrl = "/drive";
 /**
  * Collection of navigation items categorized by their layout placement.
  * * @type {Object}
- * @property {SidebarItem[]} content - Main navigation items displayed in the body of the sidebar.
- * @property {SidebarItem[]} footer - Secondary navigation items displayed at the bottom of the sidebar.
+ * @property {SidebarItem[]} app - Main navigation items displayed in the body of the sidebar.
+ * @property {SidebarItem[]} admin - Secondary navigation items displayed at the bottom of the sidebar.
  */
 export const items = {
-	content: [
+	app: [
 		{
 			title: "Home",
 			url: `${baseUrl}/home`,
 			icon: Home,
-		}
-	],
-	footer: [
+		},
 		{
 			title: "Trash",
 			url: `${baseUrl}/trash`,
 			icon: Trash2,
+		}
+	],
+	admin: [
+		{
+			title: "Users",
+			url: `${baseUrl}/users`,
+			icon: Users2,
 		}
 	]
 };
