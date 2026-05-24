@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function DriveLayout({
     children,
@@ -15,6 +16,7 @@ export default function DriveLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const router = useRouter()
 
     const handleSignOut = useCallback(async () => {
         const supabase = createClient()
@@ -23,6 +25,7 @@ export default function DriveLayout({
             return toast.error(error.message)
         }
         toast.success("Successfully signed out")
+        router.push("/auth/sign-in")
     }, [])
 
     const renderMenuItems = useCallback((itemsArray: typeof items.content) =>
@@ -65,7 +68,10 @@ export default function DriveLayout({
                     <SidebarMenu>
                         {renderMenuItems(items.footer)}
                         <SidebarMenuItem className="py-0.5">
-                            <SidebarMenuButton onClick={handleSignOut}>
+                            <SidebarMenuButton
+                                onClick={handleSignOut}
+                                className="hover:bg-red-300 active:bg-red-300 transition-colors"
+                            >
                                 <LogOut />
                                 <span>SignOut</span>
                             </SidebarMenuButton>

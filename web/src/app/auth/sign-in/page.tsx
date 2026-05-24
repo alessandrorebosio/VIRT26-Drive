@@ -27,11 +27,10 @@ export default function SignInPage() {
         })
         setLoading(false)
         if (error) {
-            toast.error(error.message)
-        } else {
-            toast.success("Successfully signed in")
-            router.push("/drive")
+            return toast.error(error.message)
         }
+        toast.success("Successfully signed in")
+        router.push("/drive")
     }
 
     const handleGithubSignIn = async () => {
@@ -43,7 +42,7 @@ export default function SignInPage() {
             },
         })
         if (error) {
-            toast.error(error.message)
+            return toast.error(error.message)
         }
     }
 
