@@ -26,8 +26,8 @@ export function useUser() {
      * @function getUser
      * @returns {Promise<void>}
      */
-    const getUser = useCallback(async () => {
-        setLoading(true)
+    const getUser = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setLoading(true)
         try {
             const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
             
@@ -57,7 +57,9 @@ export function useUser() {
     }, [supabase])
 
     useEffect(() => {
-        getUser()
+        Promise.resolve().then(() => {
+            getUser()
+        })
     }, [getUser])
 
     /**
@@ -65,5 +67,5 @@ export function useUser() {
      */
     const displayName = profile?.username || user?.user_metadata?.full_name || user?.email?.split('@')[0] || "User"
 
-    return { user, profile, loading, displayName, refresh: getUser }
+    return { user, profile, loading, displayName, refresh: () => getUser(true) }
 }

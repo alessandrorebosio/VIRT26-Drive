@@ -5,34 +5,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/input/password-input"
 import { useAccount } from "@/hooks/use-account"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AlertCircle, User as UserIcon, Shield, Mail } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 
 export default function AccountPage() {
-    const { user, profile, loading, isUpdatingProfile, isUpdatingPassword, updateProfile, updatePassword, pendingEmail, refresh } = useAccount()
-    const [username, setUsername] = useState("")
+    const { user, profile, loading, isUpdatingProfile, isUpdatingPassword, updateProfile, updatePassword, pendingEmail } = useAccount()
+    const [username, setUsername] = useState<string | undefined>(undefined)
     const [newEmail, setNewEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
 
-    useEffect(() => {
-        refresh()
-    }, [])
-
-    useEffect(() => {
-        if (!loading && profile?.username) {
-            setUsername(profile.username)
-        }
-    }, [loading, profile?.username])
+    const currentUsername = username ?? profile?.username ?? ""
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const targetEmail = newEmail || user?.email || ""
-        await updateProfile(username, targetEmail)
-        setNewEmail("")
+        await updateProfile(currentUsername, targetEmail)
+        window.location.reload()
     }
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -44,8 +36,7 @@ export default function AccountPage() {
             return toast.error("Password must be at least 6 characters")
         }
         await updatePassword(password)
-        setPassword("")
-        setConfirmPassword("")
+        window.location.reload()
     }
 
     if (loading) {
@@ -110,7 +101,7 @@ export default function AccountPage() {
                                     <Input
                                         id="username"
                                         placeholder="Your username"
-                                        value={username}
+                                        value={currentUsername}
                                         onChange={(e) => setUsername(e.target.value)}
                                         required
                                         className="h-10"

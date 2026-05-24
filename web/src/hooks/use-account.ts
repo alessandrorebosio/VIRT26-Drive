@@ -20,13 +20,13 @@ import { toast } from "sonner"
  * @returns {string | undefined} return.pendingEmail - The new email address awaiting confirmation, if a change is pending.
  */
 export function useAccount() {
-    const { user, profile, loading } = useUser()
+    const { user, profile, loading, refresh: refreshUser } = useUser()
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const supabase = createClient()
 
     /**
-     * Refreshes the current Supabase authentication session.
+     * Refreshes the current Supabase authentication session and user profile.
      * * @async
      * @function refresh
      * @returns {Promise<void>}
@@ -73,10 +73,11 @@ export function useAccount() {
 
             toast.success("Profile updated successfully")
             await refresh()
-        } catch (error: any) {
-            console.error("Profile update error:", error)
-            toast.error(error.message || "Failed to update profile")
-            throw error
+        } catch (error) {
+            const err = error as Error
+            console.error("Profile update error:", err)
+            toast.error(err.message || "Failed to update profile")
+            throw err
         } finally {
             setIsUpdatingProfile(false)
         }
@@ -96,10 +97,11 @@ export function useAccount() {
             const { error } = await supabase.auth.updateUser({ password })
             if (error) throw error
             toast.success("Password updated successfully")
-        } catch (error: any) {
-            console.error("Password update error:", error)
-            toast.error(error.message || "Failed to update password")
-            throw error
+        } catch (error) {
+            const err = error as Error
+            console.error("Password update error:", err)
+            toast.error(err.message || "Failed to update password")
+            throw err
         } finally {
             setIsUpdatingPassword(false)
         }
