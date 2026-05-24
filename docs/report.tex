@@ -346,4 +346,99 @@ relazionale PostgreSQL regolato dalle policy RLS.
 % - vantaggi della containerizzazione
 % - competenze acquisite (sistemi distribuiti, sicurezza, architettura)
 
+% APPENDIX
+\appendix
+\chapter{Guida Utente}
+\label{app:user_guide}
+L'avvio del progetto richiede l'installazione preventiva di Docker e
+del  plugin Docker Compose sulla macchina ospite. Prima di procedere
+con  l'attivazione dei servizi in qualunque ambiente, è
+indispensabile configurare  le variabili d'ambiente necessarie al
+corretto funzionamento dei container.
+
+A tale scopo, il progetto include dei file di esempio denominati
+\texttt{example.env}, situati nella cartella principale e all'interno
+delle directory \texttt{web} e \texttt{web/supabase}. Questi file di
+configurazione devono essere opportunamente duplicati e rinominati in
+\texttt{.env} (o nelle relative estensioni specifiche) in base
+all'ambiente di esecuzione target, avendo cura di compilare i campi
+relativi alle chiavi segrete di Supabase e alle porte di
+comunicazione del proxy Nginx.
+
+\newpage
+\section{Avvio in Ambiente di Sviluppo}
+L'ambiente di sviluppo è ottimizzato per consentire modifiche rapide
+al codice  sorgente con un feedback immediato tramite
+\textit{hot-reloading}. Per questo  specifico scenario, le
+configurazioni relative all'applicazione di frontend  devono essere
+caricate all'interno del file \texttt{web/.env.development}.
+
+Per avviare l'infrastruttura di sviluppo, è necessario posizionarsi
+nella root  del progetto tramite terminale ed eseguire il seguente comando:
+
+\begin{center}
+  \texttt{docker-compose -f docker-compose.dev.yml up --build}
+\end{center}
+
+Questa istruzione forza la costruzione dell'immagine di sviluppo
+della web-app e  attiva il volume montato sulla cartella
+\texttt{web}, permettendo al container  di riflettere istantaneamente
+i cambiamenti effettuati sul filesystem dell'host.
+
+Parallelamente, lo sviluppatore deve assicurarsi che i servizi di
+backend siano  attivi tramite la Supabase CLI, definendo
+esplicitamente il file di ambiente  corretto attraverso il comando:
+
+\begin{center}
+  \texttt{npx supabase start --env-file supabase/.env}
+\end{center}
+
+Una volta completata la procedura, l'interfaccia utente è
+raggiungibile  all'indirizzo locale \texttt{http://localhost:3000},
+mentre la dashboard locale  di Supabase fornisce tutti gli strumenti
+per il monitoraggio e la gestione  diretta del database e dello storage.
+
+\newpage
+\section{Avvio in Ambiente di Produzione}
+L'ambiente di produzione implementa l'architettura completa e
+self-hosted,  garantendo l'indipendenza da servizi esterni locali o
+infrastrutture cloud di terzi.  In questo contesto, le variabili
+d'ambiente dedicate alla compilazione e al  comportamento ottimizzato
+della web-app devono essere preventivamente inserite  nel file
+\texttt{web/.env.production}.
+
+La procedura di avvio dell'intera infrastruttura prevede l'esecuzione
+del comando:
+
+\begin{center}
+  \texttt{docker-compose up -d --build}
+\end{center}
+
+Questo comando avvia l'intera suite di servizi in modalità
+\textit{detached}  (in background). In questa fase, il demone Docker
+provvede a istanziare non solo  il reverse proxy Nginx e
+l'applicazione Next.js in modalità di produzione ottimizzata,  ma
+anche tutti i microservizi dello stack Supabase (PostgreSQL,
+PostgREST, Auth e Storage).
+
+Prima dell'avvio, è fondamentale verificare che la porta configurata
+per Nginx  (tipicamente la \texttt{80} o la \texttt{8080}) sia libera
+e non occupata da altri  servizi sul sistema host. Al termine del
+processo di inizializzazione, che comprende  l'applicazione
+automatica di tutte le migrazioni del database, il servizio diventa
+accessibile attraverso l'hostname configurato nel file di ambiente
+\texttt{.env}  principale, passando obbligatoriamente per il filtro
+di sicurezza del proxy.
+
+Per arrestare l'intera infrastruttura e fermare i servizi, è
+sufficiente utilizzare  il comando:
+
+\begin{center}
+  \texttt{docker-compose down}
+\end{center}
+
+Questo comando garantisce la chiusura pulita e l'arresto dei
+container, preservando  lo stato e l'integrità dei dati all'interno
+dei volumi Docker dedicati.
+
 \end{document}
