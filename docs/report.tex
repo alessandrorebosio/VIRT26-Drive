@@ -126,8 +126,7 @@ dell'applicazione:
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.75\textwidth]{./img/requirements.png}
-  \caption{Panoramica sinottica dei requisiti funzionali e non
-  funzionali del sistema.}
+  \caption{Panoramica dei requisiti funzionali e non funzionali del sistema.}
   \label{fig:requirements}
 \end{figure}
 
@@ -259,29 +258,98 @@ relazionale PostgreSQL regolato dalle policy RLS.
 \label{cap:docker}
 
 \section{Struttura dei Container}
-% Descrivere:
-% - immagini Docker utilizzate
-% - configurazione dei servizi
-% - dipendenze tra container
+La strategia di containerizzazione adottata per si basa sulla
+creazione di immagini Docker ottimizzate e specifiche per il ruolo di
+ogni servizio.
+
+Il container principale, dedicato alla web-app Next.js, sfrutta un
+\texttt{Dockerfile} strutturato con una logica \textit{multi-stage}
+per ridurre drasticamente le dimensioni dell'immagine finale e
+migliorare la sicurezza. Durante la fase di costruzione
+(\textit{build stage}), vengono installate le dipendenze necessarie e
+compilati i file sorgente TypeScript, mentre nell'immagine di
+esecuzione finale (\textit{runner stage}) vengono inclusi
+esclusivamente i file necessari al runtime di Node.js. Questa
+separazione garantisce che gli strumenti di compilazione e i file
+sorgente non siano presenti nell'ambiente di produzione.
+
+Parallelamente, il container del reverse proxy utilizza l'immagine
+ufficiale di Nginx basata su Alpine Linux, configurata tramite
+template che permettono di iniettare dinamicamente le variabili
+d'ambiente al momento dell'avvio. La struttura dei container è dunque
+modulare e segue il principio di ``una sola responsabilità per
+processo'', facilitando la diagnosi dei guasti e l'aggiornamento dei
+singoli componenti senza influenzare l'intero ecosistema.
 
 \section{Orchestrazione con Docker Compose}
-% Spiegare:
-% - come vengono avviati i servizi
-% - definizione delle reti
-% - collegamento tra container
+L'orchestrazione dei diversi container è gestita integralmente
+tramite Docker Compose, che permette di definire in modo dichiarativo
+la complessa rete di relazioni e dipendenze tra i servizi. Come
+analizzato nei capitoli precedenti, la gestione dei due ambienti
+avviene attraverso file di configurazione distinti che adattano il
+comportamento dell'infrastruttura alle necessità del ciclo di vita del software.
 
-\section{Gestione dei Volumi}
-% Descrivere:
-% - persistenza dati PostgreSQL
-% - persistenza storage (filesystem / MinIO)
-% - differenza tra volumi e storage effimero
+Il file di sviluppo (\texttt{docker-compose.dev.yml}) è configurato
+per dare priorità all'esperienza del programmatore, mappando
+direttamente le directory locali all'interno dei container per
+consentire l'aggiornamento in tempo reale del software tramite
+\textit{hot-reloading}.
+
+Al contrario, il file di produzione (\texttt{docker-compose.yml})
+definisce un'architettura \textit{self-hosted} in cui l'ordine di
+avvio è strettamente controllato tramite la direttiva
+\texttt{depends\_on}; l'applicazione web viene avviata solo dopo che
+i servizi di database e di autenticazione sono pronti a ricevere
+connessioni. Docker Compose gestisce inoltre la creazione di reti
+virtuali isolate (\textit{Docker networks}) che impediscono accessi
+non autorizzati ai servizi di backend, garantendo che l'unica porta
+esposta verso l'esterno (l'host fisico) sia quella del proxy Nginx.
+
+\section{Gestione dei Volumi e Persistenza}
+La persistenza dei dati è un aspetto critico in un'architettura
+containerizzata, dove il filesystem interno dei container è per sua
+natura effimero e volatile. Per ovviare a questa limitazione, il
+progetto utilizza i volumi Docker per separare il ciclo di vita dei
+dati da quello dei processi.
+
+In particolare, vengono definiti volumi dedicati per il database
+PostgreSQL, assicurando che i metadati degli utenti e le informazioni
+logiche sui file rimangano integri anche in caso di riavvio o
+distruzione dei container. Un approccio simile è adottato per lo
+storage degli oggetti, in cui i file binari caricati dagli utenti
+vengono archiviati in un volume persistente mappato sui bucket di
+Supabase Storage.
+
+Questa gestione permette di effettuare backup semplificati e
+garantisce la consistenza delle informazioni, differenziando
+nettamente lo storage persistente dai file temporanei di sessione o
+dalle cache di build, i quali possono essere eliminati senza
+compromettere in alcun modo l'operatività del servizio cloud.
 
 \section{Vantaggi della Containerizzazione}
-% Analizzare:
-% - isolamento dei servizi
-% - portabilità
-% - facilità di deployment
-% - confronto con architettura monolitica
+L'adozione di Docker e di un'architettura a microservizi
+containerizzati ha apportato numerosi vantaggi competitivi rispetto a
+un approccio monolitico tradizionale:
+
+\begin{itemize}
+  \item \textbf{Isolamento dei servizi:} Garantisce che eventuali
+    errori critici in un componente, come un crash del proxy o una
+    saturazione della memoria nel backend, non si propaghino
+    inevitabilmente agli altri servizi dell'infrastruttura.
+  \item \textbf{Portabilità e riproducibilità:} Grazie alla
+    standardizzazione dei container, l'intero sistema può essere
+    replicato su qualsiasi macchina ospite dotata di Docker con la
+    certezza che il comportamento a runtime rimanga identico a quello
+    testato in fase di sviluppo.
+  \item \textbf{Semplicità di deployment:} Permette di automatizzare
+    i processi di aggiornamento e scalabilità, riducendo a zero i
+    tempi di inattività (\textit{downtime}).
+\end{itemize}
+
+In conclusione, la modularità così ottenuta rende la manutenzione
+dell'infrastruttura un'operazione rapida e sicura, predisponendo
+nativamente il sistema per una futura migrazione verso soluzioni
+cloud \textit{enterprise} come Kubernetes o AWS ECS.
 
 % CHAPTER 4
 \chapter{Protocolli e Tecnologie Utilizzate}
@@ -359,11 +427,14 @@ corretto funzionamento dei container.
 A tale scopo, il progetto include dei file di esempio denominati
 \texttt{example.env}, situati nella cartella principale e all'interno
 delle directory \texttt{web} e \texttt{web/supabase}. Questi file di
-configurazione devono essere opportunamente duplicati e rinominati in
-\texttt{.env} (o nelle relative estensioni specifiche) in base
-all'ambiente di esecuzione target, avendo cura di compilare i campi
-relativi alle chiavi segrete di Supabase e alle porte di
-comunicazione del proxy Nginx.
+configurazione devono essere opportunamente duplicati e rinominati.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=.9\textwidth]{./img/structure.png}
+  \caption{Albero della struttura del progetto con i file di configurazione.}
+  \label{fig:project_structure}
+\end{figure}
 
 \newpage
 \section{Avvio in Ambiente di Sviluppo}
