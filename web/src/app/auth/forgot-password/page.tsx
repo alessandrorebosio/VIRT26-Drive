@@ -22,10 +22,9 @@ export default function ForgotPasswordPage() {
         })
         setLoading(false)
         if (error) {
-            toast.error(error.message)
-        } else {
-            toast.success("Password reset email sent")
+            return toast.error(error.message)
         }
+        toast.success("Password reset email sent")
     }
 
     return (

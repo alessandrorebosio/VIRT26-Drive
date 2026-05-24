@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import "./globals.css";
+import { ErrorToastProvider } from "@/components/error-toast-provider";
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -31,6 +32,7 @@ export default function RootLayout({
 				>
 					{children}
 					<Toaster richColors position="top-right" />
+					<ErrorToastProvider />
 				</ThemeProvider>
 			</body>
 		</html>

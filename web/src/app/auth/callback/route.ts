@@ -1,19 +1,33 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-export async function GET(request: Request) {
-	// The `/auth/callback` route is required for the server-side auth flow implemented
-	// by the SSR package. It exchanges an auth code for the user's session.
-	// https://supabase.com/docs/guides/auth/server-side/nextjs
-	const requestUrl = new URL(request.url)
-	const code = requestUrl.searchParams.get("code")
-	const origin = requestUrl.origin
+/**
+ * Next.js Route Handler that manages the OAuth authentication callback.
+ * It exchanges the temporary authorization `code` for a Supabase session
+ * and handles secure redirection based on the outcome.
+ *
+ * @param {Request} request - The incoming HTTP request object.
+ * @returns {Promise<NextResponse>} A redirect response to either the dashboard or sign-in page.
+ */
+export async function GET(request: Request): Promise<NextResponse> {
+    const requestUrl = new URL(request.url)
+    const code = requestUrl.searchParams.get('code')
 
-	if (code) {
-		const supabase = await createClient()
-		await supabase.auth.exchangeCodeForSession(code)
-	}
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || requestUrl.host
+    const proto = request.headers.get('x-forwarded-proto') || (requestUrl.protocol === 'https:' ? 'https' : 'http')
+    const origin = `${proto}://${host}`
 
-	// URL to redirect to after sign up process completes
-	return NextResponse.redirect(`${origin}/drive`)
+    if (code) {
+        const supabase = await createClient()
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+        if (error) {
+            const redirectUrl = new URL(`${origin}/auth/sign-in`)
+            redirectUrl.searchParams.set('error_description', error.message)
+
+            return NextResponse.redirect(redirectUrl.toString())
+        }
+    }
+
+    return NextResponse.redirect(`${origin}/drive`)
 }
