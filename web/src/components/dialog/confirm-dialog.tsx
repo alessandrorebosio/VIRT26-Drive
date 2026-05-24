@@ -48,7 +48,7 @@ export function ConfirmDialog({
                 <AlertDialogFooter className="grid grid-cols-2 gap-2 sm:space-x-0">
                     <AlertDialogCancel
                         disabled={loading}
-                        className="w-full mt-0"
+                        className="w-full mt-0 hover:cursor-pointer"
                     >
                         {cancelText}
                     </AlertDialogCancel>
@@ -58,7 +58,7 @@ export function ConfirmDialog({
                             onConfirm()
                         }}
                         className={cn(
-                            "w-full",
+                            "w-full hover:cursor-pointer",
                             destructive
                                 ? "bg-destructive! text-destructive-foreground hover:bg-destructive/70!"
                                 : ""

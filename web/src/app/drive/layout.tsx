@@ -104,7 +104,7 @@ export default function DriveLayout({
                     <SidebarMenu>
                         <SidebarMenuItem>
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                                <DropdownMenuTrigger asChild className="hover:cursor-pointer">
                                     <SidebarMenuButton
                                         size="lg"
                                         className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
@@ -147,7 +147,7 @@ export default function DriveLayout({
                                     </DropdownMenuLabel>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuGroup>
-                                        <DropdownMenuItem asChild>
+                                        <DropdownMenuItem asChild className="hover:cursor-pointer">
                                             <Link href={accountUrl} className="w-full flex items-center gap-2">
                                                 <UserIcon className="size-4" />
                                                 Account
@@ -155,7 +155,7 @@ export default function DriveLayout({
                                         </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+                                    <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive hover:cursor-pointer">
                                         <LogOut className="size-4" />
                                         Sign Out
                                     </DropdownMenuItem>
@@ -168,7 +168,7 @@ export default function DriveLayout({
 
             <main className="flex flex-1 flex-col bg-[radial-gradient(circle_at_center,var(--muted)_0%,transparent_100%)]">
                 <header className="flex h-16 shrink-0 items-center border-b">
-                    <SidebarTrigger />
+                    <SidebarTrigger className="hover:cursor-pointer"/>
                 </header>
 
                 <div className="flex flex-1 flex-col">

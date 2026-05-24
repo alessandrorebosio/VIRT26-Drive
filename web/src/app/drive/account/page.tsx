@@ -153,7 +153,7 @@ export default function AccountPage() {
                                 )}
                             </div>
 
-                            <Button type="submit" className="w-full h-10 font-semibold" disabled={isUpdatingProfile}>
+                            <Button type="submit" className="w-full h-10 font-semibold hover:cursor-pointer" disabled={isUpdatingProfile}>
                                 {isUpdatingProfile ? "Processing..." : "Save Changes"}
                             </Button>
                         </form>
@@ -194,7 +194,7 @@ export default function AccountPage() {
                                     />
                                 </div>
                             </div>
-                            <Button type="submit" variant="secondary" className="w-full h-10 font-semibold border" disabled={isUpdatingPassword}>
+                            <Button type="submit" variant="secondary" className="w-full h-10 font-semibold border hover:cursor-pointer" disabled={isUpdatingPassword}>
                                 {isUpdatingPassword ? "Updating..." : "Update Security"}
                             </Button>
                         </form>

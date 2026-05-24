@@ -87,7 +87,7 @@ export default function SignInPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                 />
                             </div>
-                            <Button type="submit" className="w-full" disabled={loading}>
+                            <Button type="submit" className="w-full hover:cursor-pointer" disabled={loading}>
                                 {loading ? "Logging in..." : "Login"}
                             </Button>
                         </div>
@@ -104,7 +104,7 @@ export default function SignInPage() {
                         </div>
                     </div>
 
-                    <Button variant="outline" type="button" className="w-full" onClick={handleGithubSignIn}>
+                    <Button variant="outline" type="button" className="w-full hover:cursor-pointer" onClick={handleGithubSignIn}>
                         <Unlock className="mr-2 h-4 w-4" />
                         GitHub
                     </Button>

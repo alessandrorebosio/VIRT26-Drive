@@ -66,7 +66,7 @@ export default function ResetPasswordPage() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                             />
                         </div>
-                        <Button type="submit" className="w-full" disabled={loading}>
+                        <Button type="submit" className="w-full hover:cursor-pointer" disabled={loading}>
                             {loading ? "Updating..." : "Update Password"}
                         </Button>
                     </div>

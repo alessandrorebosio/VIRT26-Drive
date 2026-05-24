@@ -16,13 +16,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import { inviteUserAction } from "../actions"
 
 interface InviteUserDialogProps {
@@ -60,7 +53,7 @@ export function InviteUserDialog({ onSuccess }: InviteUserDialogProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button>
+                <Button className="hover:cursor-pointer">
                     <Plus className="mr-2 h-4 w-4" />
                     Invite User
                 </Button>
@@ -92,7 +85,7 @@ export function InviteUserDialog({ onSuccess }: InviteUserDialogProps) {
                         </p>
                     </div>
                     <DialogFooter>
-                        <Button type="submit" disabled={inviting} className="w-full">
+                        <Button type="submit" disabled={inviting} className="w-full hover:cursor-pointer">
                             {inviting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Send Invitation
                         </Button>
