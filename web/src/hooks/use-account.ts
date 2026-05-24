@@ -12,7 +12,8 @@ import { toast } from "sonner"
  * @returns {User | null} return.user - The currently authenticated user object from `useUser`.
  * @returns {{ username: string | null; role: string } | null} return.profile - The user's profile data from `useUser`.
  * @returns {boolean} return.loading - Loading state indicating if the initial user data is being fetched.
- * @returns {boolean} return.isSaving - Form submission state indicating if an update operation is in progress.
+ * @returns {boolean} return.isUpdatingProfile - Form submission state indicating if a profile update operation is in progress.
+ * @returns {boolean} return.isUpdatingPassword - Form submission state indicating if a password update operation is in progress.
  * @returns {(newUsername: string, newEmail: string) => Promise<void>} return.updateProfile - Function to update username and/or email address.
  * @returns {(password: string) => Promise<void>} return.updatePassword - Function to securely update the user's password.
  * @returns {() => Promise<void>} return.refresh - Function to manually re-authenticate and refresh the user session.
@@ -20,7 +21,8 @@ import { toast } from "sonner"
  */
 export function useAccount() {
     const { user, profile, loading } = useUser()
-    const [isSaving, setIsSaving] = useState(false)
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const supabase = createClient()
 
     /**
@@ -50,7 +52,7 @@ export function useAccount() {
     const updateProfile = async (newUsername: string, newEmail: string) => {
         if (!user) return
 
-        setIsSaving(true)
+        setIsUpdatingProfile(true)
         try {
             if (newEmail !== user.email) {
                 const { error: authError } = await supabase.auth.updateUser({ email: newEmail }, {
@@ -76,7 +78,7 @@ export function useAccount() {
             toast.error(error.message || "Failed to update profile")
             throw error
         } finally {
-            setIsSaving(false)
+            setIsUpdatingProfile(false)
         }
     }
 
@@ -89,7 +91,7 @@ export function useAccount() {
      * @returns {Promise<void>}
      */
     const updatePassword = async (password: string) => {
-        setIsSaving(true)
+        setIsUpdatingPassword(true)
         try {
             const { error } = await supabase.auth.updateUser({ password })
             if (error) throw error
@@ -99,7 +101,7 @@ export function useAccount() {
             toast.error(error.message || "Failed to update password")
             throw error
         } finally {
-            setIsSaving(false)
+            setIsUpdatingPassword(false)
         }
     }
 
@@ -107,7 +109,8 @@ export function useAccount() {
         user,
         profile,
         loading,
-        isSaving,
+        isUpdatingProfile,
+        isUpdatingPassword,
         updateProfile,
         updatePassword,
         refresh,

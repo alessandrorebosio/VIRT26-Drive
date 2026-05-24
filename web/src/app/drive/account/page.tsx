@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 
 export default function AccountPage() {
-    const { user, profile, loading, isSaving, updateProfile, updatePassword, pendingEmail, refresh } = useAccount()
+    const { user, profile, loading, isUpdatingProfile, isUpdatingPassword, updateProfile, updatePassword, pendingEmail, refresh } = useAccount()
     const [username, setUsername] = useState("")
     const [newEmail, setNewEmail] = useState("")
     const [password, setPassword] = useState("")
@@ -162,8 +162,8 @@ export default function AccountPage() {
                                 )}
                             </div>
 
-                            <Button type="submit" className="w-full h-10 font-semibold" disabled={isSaving}>
-                                {isSaving ? "Processing..." : "Save Changes"}
+                            <Button type="submit" className="w-full h-10 font-semibold" disabled={isUpdatingProfile}>
+                                {isUpdatingProfile ? "Processing..." : "Save Changes"}
                             </Button>
                         </form>
                     </section>
@@ -203,8 +203,8 @@ export default function AccountPage() {
                                     />
                                 </div>
                             </div>
-                            <Button type="submit" variant="secondary" className="w-full h-10 font-semibold border" disabled={isSaving}>
-                                {isSaving ? "Updating..." : "Update Security"}
+                            <Button type="submit" variant="secondary" className="w-full h-10 font-semibold border" disabled={isUpdatingPassword}>
+                                {isUpdatingPassword ? "Updating..." : "Update Security"}
                             </Button>
                         </form>
                     </section>
