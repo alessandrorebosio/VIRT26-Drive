@@ -25,7 +25,6 @@
 }
 \date{\today}
 
-
 \maketitle
 
 \pagenumbering{roman}
@@ -34,6 +33,29 @@
 \chapter*{Introduzione}
 \label{chap:introduzione}
 \addcontentsline{toc}{chapter}{Introduzione}
+L'evoluzione del cloud computing ha trasformato radicalmente il modo
+in cui gestiamo, archiviamo e condividiamo le informazioni, rendendo
+l'accessibilità ubiqua un requisito fondamentale per le moderne
+applicazioni. In questo contesto, il presente progetto, sviluppato
+nell'ambito del corso di Virtualizzazione e Integrazione di Sistemi,
+si pone l'obiettivo di progettare e implementare un servizio cloud di
+archiviazione e gestione file scalabile e containerizzato.
+
+Il sistema offre un'esperienza utente reattiva e moderna, ispirata ai
+principali servizi di cloud storage, permettendo la gestione
+gerarchica di file e cartelle, il caricamento drag-and-drop e la
+gestione del cestino in modo sicuro. L'architettura è stata studiata
+per enfatizzare la separazione delle responsabilità e la portabilità:
+il sistema si avvale di Docker per l'isolamento dei servizi, Nginx
+come reverse proxy per la gestione sicura del traffico, Next.js per
+la logica full-stack dell'applicazione e Supabase per la persistenza
+dei dati e la gestione dell'autenticazione.
+
+L'elaborato descrive le fasi di analisi, progettazione e
+implementazione del servizio, illustrando i requisiti funzionali, le
+scelte architetturali adottate e i vantaggi derivanti dall'impiego
+della containerizzazione nello sviluppo e nel deployment di
+applicazioni distribuite.
 
 \setstretch{1}
 \tableofcontents
