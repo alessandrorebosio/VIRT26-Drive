@@ -196,6 +196,69 @@ le API REST fornite da PostgREST, per la gestione dei file binari
 tramite lo Storage e per il modulo Auth, realizzando un ecosistema
 completamente indipendente e isolato all'interno della rete Docker.
 
+\section{Componenti e Servizi del Sistema}
+\label{sec:componenti_sistema}
+L'infrastruttura si compone di diversi moduli containerizzati,
+ciascuno deputato a svolgere un compito specifico secondo il
+principio di microservizi isolati. Di seguito vengono dettagliati i
+singoli container utilizzati e il loro ruolo all'interno del sistema:
+
+\begin{itemize}
+  \item \textbf{Nginx (\texttt{nginx-proxy}):} Agisce come unico
+    punto di ingresso pubblico dell'infrastruttura. Configurato come
+    reverse proxy, accetta le richieste HTTP esterne, gestisce la
+    sicurezza di rete nascondendo l'infrastruttura interna, inserisce
+    gli header di tracciamento (come l'IP reale del client) e smista
+    il traffico in modo efficiente verso il frontend o verso i servizi API.
+
+  \item \textbf{Web App (\texttt{web-app}):} Ospita l'applicazione
+    full-stack sviluppata in Next.js. Gestisce sia l'interfaccia
+    utente responsive (eseguita lato client) sia le logiche di
+    backend lato server (Server Actions e API Routes),
+    interfacciandosi direttamente con lo stack Supabase per il
+    recupero dei dati.
+
+  \item \textbf{Kong (\texttt{supabase-kong}):} Funge da API Gateway
+    per lo stack auto-ospitato di Supabase. Intercetta tutte le
+    richieste dirette ai servizi di backend, gestisce la validazione
+    iniziale dei token JWT e instrada il traffico verso lo specifico
+    microservizio richiesto (Auth, PostgREST o Storage).
+
+  \item \textbf{GoTrue (\texttt{supabase-auth}):} È il microservizio
+    scritto in Go dedicato alla gestione delle identità e
+    dell'autenticazione stateless. Si occupa dei flussi di
+    registrazione, login, rinnovo dei token e hashing sicuro delle
+    password (tramite bcrypt), interfacciandosi con lo schema isolato
+    del database.
+
+  \item \textbf{PostgREST (\texttt{supabase-rest}):} Fornisce un
+    livello di astrazione sopra il database, trasformando
+    automaticamente lo schema relazionale di PostgreSQL in un'API
+    RESTful pronta all'uso. Permette alla web-app di eseguire
+    operazioni sui dati tramite semplici chiamate HTTP, riducendo la
+    necessità di scrivere query SQL manuali.
+
+  \item \textbf{Storage (\texttt{supabase-storage}):} Gestisce la
+    logic di business legata ai file binari e all'Object Storage
+    compatibile con lo standard S3. Si occupa di ricevere i flussi di
+    dati durante l'upload, verificare i permessi di accesso e
+    generare gli URL firmati temporanei per il download sicuro.
+
+  \item \textbf{PostgreSQL (\texttt{supabase-db}):} Rappresenta il
+    cuore della persistenza dei dati del sistema. Oltre a memorizzare
+    i metadati relazionali (utenti, cartelle, riferimenti ai file),
+    implementa attivamente le logiche di sicurezza tramite le policy
+    di Row Level Security (RLS) per isolare rigidamente i dati di
+    ciascun utente.
+
+  \item \textbf{Mailpit (\texttt{mailpit}):} Utilizzato all'interno
+    dell'ambiente di sviluppo come server SMTP locale. Intercetta
+    tutte le email transazionali generate da GoTrue (come i messaggi
+    di conferma registrazione o di reset password), consentendo di
+    testare i flussi di notifica in totale sicurezza attraverso
+    un'interfaccia web dedicata senza inviare messaggi reali.
+\end{itemize}
+
 \section{Comunicazione tra Container}
 La comunicazione all'interno del sistema avviene sfruttando la rete
 virtuale privata gestita dinamicamente da Docker. Nell'ambiente di
