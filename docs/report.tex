@@ -355,24 +355,66 @@ cloud \textit{enterprise} come Kubernetes o AWS ECS.
 \chapter{Protocolli e Tecnologie Utilizzate}
 \label{cap:protocolli}
 
-\section{Comunicazione HTTP e REST}
-% Descrivere:
-% - uso di HTTP per le API
-% - architettura REST
-% - metodi principali (GET, POST)
-% - upload file tramite multipart/form-data
+\section{Comunicazione HTTP e Architettura REST}
+L'intera infrastruttura del servizio cloud poggia sul protocollo HTTP
+per lo scambio di informazioni tra i vari moduli del sistema. La
+comunicazione segue i principi dell'architettura REST
+(Representational State Transfer), utilizzando i metodi standard come
+GET per il recupero delle liste di file, POST per la creazione di
+nuove risorse o cartelle e DELETE per lo spostamento nel cestino o
+l'eliminazione.
 
-\section{Comunicazione tra Servizi}
-% Descrivere:
-% - comunicazione backend → database
-% - comunicazione backend → storage
-% - uso di API S3 nel caso MinIO
+L'applicazione Next.js agisce come orchestratore, esponendo endpoint
+che vengono consumati dal frontend React e che, a loro volta,
+interagiscono con i servizi di backend tramite chiamate asincrone.
+Per quanto riguarda il trasferimento dei contenuti multimediali, il
+sistema gestisce l'upload dei file attraverso flussi di dati binari e
+l'utilizzo di header specifici per il tipo di contenuto, mentre il
+download viene ottimizzato tramite la generazione di URL temporanei
+che permettono al client di accedere direttamente allo storage in
+modo sicuro, riducendo il carico computazionale sul server principale
+e garantendo una latenza minima per l'utente finale.
 
-\section{Persistenza dei Dati}
-% Confrontare:
-% - filesystem (struttura gerarchica)
-% - object storage (bucket e oggetti)
-% Evidenziare differenze in accesso e scalabilità.
+\newpage
+\section{Interazione tra Servizi e Integrazione Backend}
+La comunicazione interna tra i servizi containerizzati e i
+microservizi di backend è progettata per essere trasparente e
+resiliente. L'applicazione web interagisce con il database attraverso
+l'interfaccia PostgREST, che trasforma automaticamente le tabelle di
+PostgreSQL in API RESTful pronte all'uso. Questo livello di
+astrazione permette di eseguire interrogazioni complesse e operazioni
+di join sui dati dei file (come la ricostruzione dei percorsi
+gerarchici delle cartelle) senza dover scrivere query SQL complesse
+lato applicativo.
+
+Parallelamente, la logica di business comunica con il servizio di
+storage per la gestione fisica dei file, scambiando metadati relativi
+a dimensioni, tipi MIME e permessi di accesso. La separazione netta
+tra il controllo dell'autenticazione, la gestione dei dati
+relazionali e l'archiviazione degli oggetti permette a ogni
+componente di operare in modo indipendente, garantendo che un
+aggiornamento o una manutenzione su un singolo servizio non
+interrompa la connettività globale del sistema.
+
+\section{Persistenza dei Dati e Object Storage}
+La persistenza delle informazioni nel sistema è gestita in modo
+ibrido per massimizzare l'efficienza e la scalabilità. I metadati
+relativi alla struttura del filesystem, alle informazioni sugli
+utenti e ai riferimenti logici dei file sono archiviati all'interno
+di un database relazionale PostgreSQL, che garantisce la coerenza
+transazionale e la velocità di ricerca necessaria per la navigazione
+nelle cartelle.
+
+Al contrario, i file fisici caricati dagli utenti non vengono salvati
+direttamente nel database per evitare un eccessivo overhead, ma sono
+ospitati in un sistema di Object Storage compatibile con lo standard
+S3. Questo approccio permette di archiviare grandi volumi di dati non
+strutturati all'interno di bucket organizzati, dove ogni oggetto è
+identificato da una chiave univoca salvata nel database relazionale.
+Tale separazione tra metadati logici e storage fisico rappresenta la
+colonna vertebrale della moderna architettura cloud, permettendo al
+sistema di gestire milioni di file mantenendo inalterata la
+reattività dell'interfaccia e la sicurezza degli accessi.
 
 % CHAPTER 5
 \chapter{Gestione Utenti e Autenticazione}
