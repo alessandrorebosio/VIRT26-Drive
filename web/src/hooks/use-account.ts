@@ -20,7 +20,7 @@ import { toast } from "sonner"
  * @returns {string | undefined} return.pendingEmail - The new email address awaiting confirmation, if a change is pending.
  */
 export function useAccount() {
-    const { user, profile, loading, refresh: refreshUser } = useUser()
+    const { user, profile, loading } = useUser()
     const [isUpdatingProfile, setIsUpdatingProfile] = useState(false)
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const supabase = createClient()
