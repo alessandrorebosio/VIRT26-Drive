@@ -60,9 +60,10 @@ export async function getUsersAction(): Promise<ActionResponse<UserData[]>> {
         });
 
         return { success: true, data: mergedUsers };
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to fetch users";
         console.error("Error in getUsersAction:", error);
-        return { success: false, error: error.message || "Failed to fetch users" };
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -74,9 +75,9 @@ export async function getUsersAction(): Promise<ActionResponse<UserData[]>> {
  * @function inviteUserAction
  * @param {string} email - The email address of the user to invite.
  * @param {string} role - The initial application role to assign to the invited user.
- * @returns {Promise<ActionResponse<any>>} A promise that resolves to a success status with invitation data, or an error payload.
+ * @returns {Promise<ActionResponse<unknown>>} A promise that resolves to a success status with invitation data, or an error payload.
  */
-export async function inviteUserAction(email: string, role: string): Promise<ActionResponse<any>> {
+export async function inviteUserAction(email: string, role: string): Promise<ActionResponse<unknown>> {
     try {
         const supabaseAdmin = createAdminClient();
 
@@ -89,9 +90,10 @@ export async function inviteUserAction(email: string, role: string): Promise<Act
 
         revalidatePath("/drive/users");
         return { success: true, data };
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to invite user";
         console.error("Error in inviteUserAction:", error);
-        return { success: false, error: error.message || "Failed to invite user" };
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -114,8 +116,9 @@ export async function deleteUserAction(userId: string): Promise<ActionResponse> 
 
         revalidatePath("/drive/users");
         return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Failed to delete user";
         console.error("Error in deleteUserAction:", error);
-        return { success: false, error: error.message || "Failed to delete user" };
+        return { success: false, error: errorMessage };
     }
 }
