@@ -7,6 +7,7 @@ import { getColumns } from "./columns"
 import { cn } from "@/lib/utils"
 import { Upload, ChevronRight, Home } from "lucide-react"
 import { CreateFolderDialog } from "./_components/create-folder-dialog"
+import { UploadButton } from "./_components/upload-button"
 import { toast } from "sonner"
 
 export default function HomePage() {
@@ -29,6 +30,23 @@ export default function HomePage() {
             setCurrentPath([])
         } else {
             setCurrentPath(currentPath.slice(0, index + 1))
+        }
+    }
+
+    const handleManualUpload = async (fileList: FileList) => {
+        const uploadPromises = Array.from(fileList).map(file => 
+            uploadFile(file, currentFolderId, true)
+        )
+
+        if (uploadPromises.length > 0) {
+            toast.promise(Promise.all(uploadPromises), {
+                loading: 'Uploading files...',
+                success: () => {
+                    fetchFiles(currentFolderId)
+                    return 'All files uploaded successfully'
+                },
+                error: 'Failed to upload some files',
+            })
         }
     }
 
@@ -134,7 +152,10 @@ export default function HomePage() {
                         ))}
                     </nav>
                 </div>
-                <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => {})} />
+                <div className="flex items-center gap-2">
+                    <UploadButton onUpload={handleManualUpload} />
+                    <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => {})} />
+                </div>
             </div>
 
             {isDragging && (

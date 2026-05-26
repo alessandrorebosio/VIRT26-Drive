@@ -2,6 +2,8 @@ server {
     listen 80;
     server_name ${NGINX_HOST};
 
+    client_max_body_size 50M;
+
     # Supabase APIs (Auth, PostgREST, Storage) via Kong
     location ~ ^/(auth|rest|storage)/v1/ {
         proxy_pass http://kong:8000;

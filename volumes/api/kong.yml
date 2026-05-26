@@ -9,11 +9,9 @@ consumers:
   - username: anon
     keyauth_credentials:
       - key: $SUPABASE_ANON_KEY
-      - key: $SUPABASE_PUBLISHABLE_KEY
   - username: service_role
     keyauth_credentials:
       - key: $SUPABASE_SERVICE_KEY
-      - key: $SUPABASE_SECRET_KEY
 
 ###
 ### Access Control List
@@ -31,14 +29,56 @@ acls:
 
 services:
   ## Auth routes (open)
-  - name: auth-v1-open
-    url: http://auth:9999
+  - name: auth-v1-authorize
+    url: http://auth:9999/authorize
     routes:
-      - name: auth-v1-open
+      - name: auth-v1-authorize
+        paths:
+          - /auth/v1/authorize
+    plugins:
+      - name: cors
+
+  - name: auth-v1-callback
+    url: http://auth:9999/callback
+    routes:
+      - name: auth-v1-callback
+        paths:
+          - /auth/v1/callback
+    plugins:
+      - name: cors
+
+  - name: auth-v1-verify
+    url: http://auth:9999/verify
+    routes:
+      - name: auth-v1-verify
         paths:
           - /auth/v1/verify
-          - /auth/v1/callback
-          - /auth/v1/authorize
+    plugins:
+      - name: cors
+
+  - name: auth-v1-token
+    url: http://auth:9999/token
+    routes:
+      - name: auth-v1-token
+        paths:
+          - /auth/v1/token
+    plugins:
+      - name: cors
+
+  - name: auth-v1-user
+    url: http://auth:9999/user
+    routes:
+      - name: auth-v1-user
+        paths:
+          - /auth/v1/user
+    plugins:
+      - name: cors
+
+  - name: auth-v1-jwks
+    url: http://auth:9999/.well-known/jwks.json
+    routes:
+      - name: auth-v1-jwks
+        paths:
           - /auth/v1/.well-known/jwks.json
     plugins:
       - name: cors

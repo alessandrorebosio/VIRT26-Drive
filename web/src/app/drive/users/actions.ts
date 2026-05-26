@@ -81,9 +81,11 @@ export async function inviteUserAction(email: string, role: string): Promise<Act
     try {
         const supabaseAdmin = createAdminClient();
 
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost';
+
         const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
             data: { role },
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+            redirectTo: `${siteUrl}/auth/reset-password`,
         });
 
         if (error) throw error;

@@ -12,6 +12,7 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request): Promise<NextResponse> {
     const requestUrl = new URL(request.url)
     const code = requestUrl.searchParams.get('code')
+    const next = requestUrl.searchParams.get('next') ?? '/drive'
 
     const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || requestUrl.host
     const proto = request.headers.get('x-forwarded-proto') || (requestUrl.protocol === 'https:' ? 'https' : 'http')
@@ -29,5 +30,5 @@ export async function GET(request: Request): Promise<NextResponse> {
         }
     }
 
-    return NextResponse.redirect(`${origin}/drive`)
+    return NextResponse.redirect(`${origin}${next}`)
 }
