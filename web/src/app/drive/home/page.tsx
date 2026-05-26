@@ -34,7 +34,7 @@ export default function HomePage() {
     }
 
     const handleManualUpload = async (fileList: FileList) => {
-        const uploadPromises = Array.from(fileList).map(file => 
+        const uploadPromises = Array.from(fileList).map(file =>
             uploadFile(file, currentFolderId, true)
         )
 
@@ -98,7 +98,7 @@ export default function HomePage() {
                     uploadPromises.push(uploadEntry(item, currentFolderId))
                 }
             }
-            
+
             if (uploadPromises.length > 0) {
                 toast.promise(Promise.all(uploadPromises), {
                     loading: 'Uploading items...',
@@ -130,11 +130,12 @@ export default function HomePage() {
                         Home
                     </h1>
                     <nav className="flex items-center text-sm text-muted-foreground">
-                        <button 
+                        <button
                             onClick={() => handleBreadcrumbClick(-1)}
                             className="flex items-center hover:text-primary transition-colors cursor-pointer"
                         >
                             <Home className="h-4 w-4" />
+                            <span className="pl-2">home</span>
                         </button>
                         {currentPath.map((folder, index) => (
                             <div key={folder.id} className="flex items-center">
@@ -154,7 +155,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                     <UploadButton onUpload={handleManualUpload} />
-                    <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => {})} />
+                    <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => { })} />
                 </div>
             </div>
 
