@@ -29,7 +29,7 @@ export default function SetupPage() {
             return toast.error(result.error)
         }
         toast.success("Administrator account created successfully!");
-        router.push("/auth/sign-in")
+        router.push("/setup/start-up")
     }
 
     return (

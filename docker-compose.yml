@@ -230,7 +230,7 @@ services:
       FILE_SIZE_LIMIT: 52428800
       STORAGE_BACKEND: file
       # S3 bucket when using S3 backend, directory name when using 'file'
-      GLOBAL_S3_BUCKET: stub
+      GLOBAL_S3_BUCKET: files
       # S3 Backend configuration
       #GLOBAL_S3_ENDPOINT: https://your-s3-endpoint
       #GLOBAL_S3_PROTOCOL: https

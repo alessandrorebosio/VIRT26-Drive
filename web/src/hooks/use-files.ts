@@ -132,6 +132,7 @@ export function useFiles() {
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to create folder"
             if (!silent) toast.error(message)
+            if (silent) throw error
             return null
         }
     }
@@ -147,7 +148,9 @@ export function useFiles() {
     const uploadFile = async (file: File, parentId: string | null = null, silent = false) => {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
-            if (!silent) toast.error("You must be logged in to upload files")
+            const msg = "You must be logged in to upload files"
+            if (!silent) toast.error(msg)
+            if (silent) throw new Error(msg)
             return
         }
 
@@ -183,6 +186,7 @@ export function useFiles() {
         } catch (error) {
             const message = error instanceof Error ? error.message : "Failed to upload file"
             if (!silent) toast.error(message)
+            if (silent) throw error
         }
     }
 

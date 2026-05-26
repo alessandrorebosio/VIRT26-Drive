@@ -50,26 +50,47 @@ export default function HomePage() {
         }
     }
 
-    const uploadEntry = useCallback(async (entry: any, parentId: string | null) => {
-        if (entry.isFile) {
-            return new Promise<void>((resolve) => {
-                entry.file(async (file: File) => {
-                    await uploadFile(file, parentId, true)
-                    resolve()
+    const uploadEntry = useCallback(async (entry: FileSystemEntry, parentId: string | null) => {
+        const process = async (e: FileSystemEntry, pId: string | null) => {
+            if (e.isFile) {
+                const fileEntry = e as FileSystemFileEntry
+                return new Promise<void>((resolve, reject) => {
+                    fileEntry.file(async (file: File) => {
+                        try {
+                            await uploadFile(file, pId, true)
+                            resolve()
+                        } catch (err) {
+                            reject(err)
+                        }
+                    }, reject)
                 })
-            })
-        } else if (entry.isDirectory) {
-            const folder = await createFolder(entry.name, parentId, true)
-            if (folder) {
-                const dirReader = entry.createReader()
-                const entries = await new Promise<any[]>((resolve) => {
-                    dirReader.readEntries((entries: any[]) => resolve(entries))
-                })
-                for (const childEntry of entries) {
-                    await uploadEntry(childEntry, folder.id)
+            } else if (e.isDirectory) {
+                const dirEntry = e as FileSystemDirectoryEntry
+                const folder = await createFolder(dirEntry.name, pId, true)
+                if (folder) {
+                    const dirReader = dirEntry.createReader()
+                    const readAllEntries = async () => {
+                        const allEntries: FileSystemEntry[] = []
+                        let results = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+                            dirReader.readEntries((entries: FileSystemEntry[]) => resolve(entries), reject)
+                        })
+                        while (results.length > 0) {
+                            allEntries.push(...results)
+                            results = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+                                dirReader.readEntries((entries: FileSystemEntry[]) => resolve(entries), reject)
+                            })
+                        }
+                        return allEntries
+                    }
+
+                    const entries = await readAllEntries()
+                    for (const childEntry of entries) {
+                        await process(childEntry, folder.id)
+                    }
                 }
             }
         }
+        await process(entry, parentId)
     }, [uploadFile, createFolder])
 
     const handleDragOver = (e: React.DragEvent) => {
