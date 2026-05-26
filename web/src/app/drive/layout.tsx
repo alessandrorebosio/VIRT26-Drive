@@ -58,7 +58,14 @@ export default function DriveLayout({
         itemsArray.map((item) => (
             <SidebarMenuItem key={item.title} className="py-0.5">
                 <SidebarMenuButton asChild isActive={pathname === item.url}>
-                    <Link href={item.url}>
+                    <Link
+                        href={item.url}
+                        onClick={(e) => {
+                            if (pathname === item.url) {
+                                e.preventDefault();
+                                window.location.reload();
+                            }
+                        }}>
                         <item.icon />
                         <span>{item.title}</span>
                     </Link>
@@ -168,7 +175,7 @@ export default function DriveLayout({
 
             <main className="flex flex-1 flex-col bg-[radial-gradient(circle_at_center,var(--muted)_0%,transparent_100%)]">
                 <header className="flex h-16 shrink-0 items-center border-b">
-                    <SidebarTrigger className="hover:cursor-pointer"/>
+                    <SidebarTrigger className="hover:cursor-pointer" />
                 </header>
 
                 <div className="flex flex-1 flex-col">

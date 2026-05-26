@@ -89,7 +89,7 @@ services:
       # Initialize the database settings with JWT_SECRET and JWT_EXP
       - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # Seed
-      - ./web/supabase/migrations/seed.sql:/docker-entrypoint-initdb.d/init-scripts/99-seed.sql:Z
+      - ./web/supabase/snippets/schemas.sql:/docker-entrypoint-initdb.d/init-scripts/99-schemas.sql:Z
       # PGDATA directory is persisted between restarts
       - ./volumes/db/data:/var/lib/postgresql/data:Z
       # Use named volume to persist pgsodium decryption key between restarts

@@ -51,8 +51,10 @@ export const getColumns = (
             accessorKey: "created_at",
             header: "Uploaded At",
             cell: ({ row }) => {
-                const date = new Date(row.getValue("created_at"))
-                return <div className="text-muted-foreground">{date.toLocaleDateString()}</div>
+                const val = row.getValue("created_at")
+                if (!val) return <div className="text-muted-foreground">-</div>
+                const date = new Date(val as string)
+                return <div className="text-muted-foreground">{date.toLocaleString()}</div>
             },
         },
         {
