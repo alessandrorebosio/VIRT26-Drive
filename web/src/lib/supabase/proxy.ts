@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createAdminClient } from "./admin";
 
 /**
  * Updates and refreshes the Supabase authentication session within the Next.js Middleware/Proxy layer.
@@ -58,30 +59,27 @@ export async function updateSession(request: NextRequest) {
 	// with the Supabase client, your users may be randomly logged out.
 	const { data } = await supabase.auth.getClaims();
 	const user = data?.claims;
+	const pathname = request.nextUrl.pathname;
 
-	if (
-		request.nextUrl.pathname !== "/" &&
-		!user &&
-		!request.nextUrl.pathname.startsWith("/auth")
-	) {
-		// no user, potentially respond by redirecting the user to the login page
-		const url = request.nextUrl.clone();
-		url.pathname = "/auth/sign-in";
-		return NextResponse.redirect(url);
+	if (!user) {
+		const supabaseAdmin = createAdminClient();
+		const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
+
+		if (!users?.length || error) {
+			if (!pathname.startsWith("/setup")) {
+				return NextResponse.redirect(new URL("/setup/profile", request.url));
+			}
+		} else {
+			if (!pathname.startsWith("/auth")) {
+				return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+			}
+		}
 	}
-
-	// IMPORTANT: You *must* return the supabaseResponse object as it is.
-	// If you're creating a new response object with NextResponse.next() make sure to:
-	// 1. Pass the request in it, like so:
-	//    const myNewResponse = NextResponse.next({ request })
-	// 2. Copy over the cookies, like so:
-	//    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-	// 3. Change the myNewResponse object to fit your needs, but avoid changing
-	//    the cookies!
-	// 4. Finally:
-	//    return myNewResponse
-	// If this is not done, you may be causing the browser and server to go out
-	// of sync and terminate the user's session prematurely!
+	else {
+		if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/setup")) {
+			return NextResponse.redirect(new URL("/drive", request.url));
+		}
+	}
 
 	return supabaseResponse;
 }
