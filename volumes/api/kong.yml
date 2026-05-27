@@ -1,0 +1,150 @@
+_format_version: '2.1'
+_transform: true
+
+###
+### Consumers / Users
+###
+
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: $SUPABASE_ANON_KEY
+  - username: service_role
+    keyauth_credentials:
+      - key: $SUPABASE_SERVICE_KEY
+
+###
+### Access Control List
+###
+
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: admin
+
+###
+### API Routes
+###
+
+services:
+  ## Auth routes (open)
+  - name: auth-v1-authorize
+    url: http://auth:9999/authorize
+    routes:
+      - name: auth-v1-authorize
+        paths:
+          - /auth/v1/authorize
+    plugins:
+      - name: cors
+
+  - name: auth-v1-callback
+    url: http://auth:9999/callback
+    routes:
+      - name: auth-v1-callback
+        paths:
+          - /auth/v1/callback
+    plugins:
+      - name: cors
+
+  - name: auth-v1-verify
+    url: http://auth:9999/verify
+    routes:
+      - name: auth-v1-verify
+        paths:
+          - /auth/v1/verify
+    plugins:
+      - name: cors
+
+  - name: auth-v1-token
+    url: http://auth:9999/token
+    routes:
+      - name: auth-v1-token
+        paths:
+          - /auth/v1/token
+    plugins:
+      - name: cors
+
+  - name: auth-v1-user
+    url: http://auth:9999/user
+    routes:
+      - name: auth-v1-user
+        paths:
+          - /auth/v1/user
+    plugins:
+      - name: cors
+
+  - name: auth-v1-jwks
+    url: http://auth:9999/.well-known/jwks.json
+    routes:
+      - name: auth-v1-jwks
+        paths:
+          - /auth/v1/.well-known/jwks.json
+    plugins:
+      - name: cors
+
+  ## Auth routes (secure)
+  - name: auth-v1
+    url: http://auth:9999/
+    routes:
+      - name: auth-v1-all
+        paths:
+          - /auth/v1/
+    plugins:
+      - name: cors
+      - name: key-auth
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+      - name: acl
+        config:
+          allow:
+            - admin
+            - anon
+
+  ## PostgREST routes
+  - name: rest-v1
+    url: http://rest:3000/
+    routes:
+      - name: rest-v1-all
+        paths:
+          - /rest/v1/
+    plugins:
+      - name: cors
+      - name: key-auth
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+      - name: acl
+        config:
+          allow:
+            - admin
+            - anon
+
+  ## Storage API endpoint
+  - name: storage-v1
+    url: http://storage:5000/
+    routes:
+      - name: storage-v1-all
+        paths:
+          - /storage/v1/
+    plugins:
+      - name: cors
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"
+          replace:
+            headers:
+              - "Authorization: $LUA_AUTH_EXPR"

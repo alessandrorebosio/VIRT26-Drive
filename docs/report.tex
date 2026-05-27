@@ -1,0 +1,934 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage[italian]{babel}
+\usepackage[italian]{cleveref}
+\usepackage{pdfpages}
+
+\hyphenation{sil-la-ba-zio-ne pa-ren-te-si}
+\textwidth=450pt\oddsidemargin=0pt
+
+\begin{document}
+
+\title{
+  Corso di Virtualizzazione e integrazione di Sistemi
+  \\ Sviluppo servizio cloud
+}
+\author{
+  Alessandro Rebosio \\
+  Matricola: 1130557
+}
+\date{\today}
+
+\maketitle
+
+\pagenumbering{roman}
+\setstretch{1.25}
+
+\chapter*{Introduzione}
+\label{chap:introduzione}
+\addcontentsline{toc}{chapter}{Introduzione}
+L'inarrestabile evoluzione tecnologica degli ultimi decenni ha
+sancito il passaggio definitivo da paradigmi computazionali locali a
+modelli distribuiti, elevando il cloud computing a pilastro
+fondamentale dell'infrastruttura digitale contemporanea. In un
+panorama in cui il volume di dati generati cresce esponenzialmente,
+la capacità di archiviare, gestire e accedere alle informazioni in
+modo ubiquo, sicuro e scalabile non rappresenta più un semplice
+valore aggiunto, bensì una necessità imprescindibile per
+organizzazioni e utenti finali.
+
+Contestualmente, l'avvento della containerizzazione ha rivoluzionato
+il ciclo di vita del software, introducendo standard di portabilità e
+isolamento che hanno reso possibile il superamento delle tradizionali
+barriere tra ambienti di sviluppo e produzione. È in questo scenario
+tecnologico che si colloca il presente elaborato, realizzato
+nell'ambito del corso di Virtualizzazione e Integrazione di Sistemi,
+avente come oggetto la progettazione e l'implementazione di una
+piattaforma di cloud storage containerizzata.
+
+Il progetto mira a sviluppare un ecosistema robusto e reattivo,
+capace dioffrire funzionalità avanzate di gestione documentale
+attraversoun'interfaccia intuitiva e moderna. L'architettura proposta
+si fonda sullascomposizione funzionale dei servizi, sfruttando la
+potenza diDocker~\cite{docker} per l'orchestrazione di un insieme
+eterogeneo dicomponenti: da Nginx~\cite{nginx}, impiegato come
+gateway di accessosicuro, al framework Next.js~\cite{nextjs} per lo
+sviluppo della logicaapplicativa full-stack, fino all'integrazione
+con lo stackSupabase~\cite{supabase} per la persistenza dei dati e la
+gestionedell'identità.
+
+L'elaborato analizza i requisiti e il design architetturale del
+sistema, focalizzandosi su isolamento di rete e persistenza dei dati.
+Esamina poi le scelte relative a comunicazione e autenticazione,
+concludendo con le prospettive evolutive in termini di scalabilità e
+alta disponibilità.
+
+\setstretch{1}
+\tableofcontents
+
+\cleardoublepage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\setstretch{1.25}
+
+% CHAPTER 1
+\chapter{Obiettivi e Requisiti di Progetto}
+\label{cap:obiettivi}
+
+\section{Motivazioni e Contesto}
+Il progetto nasce dall'esigenza di esplorare le metodologie moderne di
+sviluppo software distribuito, focalizzandosi sulla realizzazione di
+un'infrastruttura di cloud storage che sia al contempo sicura, scalabile e
+completamente autonoma (\textit{self-hosted}). La crescente dipendenza da
+servizi di terze parti per l'archiviazione dei dati solleva questioni
+cruciali riguardanti la sovranità del dato e la trasparenza dei processi di
+gestione. In questo contesto, lo sviluppo di una soluzione proprietaria,
+seppur a scopo didattico, permette di analizzare nel dettaglio le sfide
+architetturali legate alla persistenza dei file binari, alla gestione della
+concorrenza e alla protezione degli accessi.
+
+L'obiettivo primario è la creazione di un sistema che integri le migliori
+pratiche della virtualizzazione tramite container, dimostrando come sia
+possibile orchestrare servizi eterogenei per offrire un'esperienza utente
+paragonabile a quella dei principali provider commerciali, mantenendo però
+il controllo totale sull'intera infrastruttura.
+
+\newpage
+\section{Obiettivi del Progetto e Requisiti}
+L'elaborato si propone di raggiungere una serie di traguardi
+tecnico-scientifici volti alla realizzazione di un sistema software
+sicuro, efficiente e altamente scalabile. In primo luogo, il progetto
+prevede la progettazione e l'integrazione di un'architettura a
+microservizi di natura modulare. All'interno di tale ecosistema, ogni
+singolo componente - tra cui la web-app, l'API gateway, il database e
+i sistemi di storage - è strutturato per operare in isolamento,
+garantendo al contempo una cooperazione sinergica e una maggiore
+tolleranza ai guasti rispetto ai tradizionali approcci monolitici. Un
+secondo requisito fondamentale riguarda la sicurezza e la gestione
+degli accessi. A tal fine, viene implementato un solido sistema di
+gestione delle identità basato su standard moderni, quali token JWT e
+il framework OAuth 2.0; questa scelta si rende essenziale per
+garantire che qualsiasi operazione sui dati avvenga in un perimetro
+rigorosamente autenticato e protetto.
+
+Parallelamente, una parte rilevante dello studio è dedicata
+all'efficienza nella gestione delle informazioni, con l'obiettivo di
+ottimizzare i flussi di rete legati all' upload e al download di file
+di dimensioni eterogenee. Tale approccio ingegneristico mira a
+minimizzare il carico elaborativo sul server, assicurando
+contestualmente l'assoluta coerenza e integrità dei metadati
+associati alle risorse. Infine, per garantire la massima portabilità
+e replicabilità del progetto, si è scelto di adottare le tecnologie
+di containerizzazione. Questo paradigma permette di incapsulare
+l'applicativo in ambienti standardizzati, assicurando che il sistema
+sia facilmente distribuibile in qualsiasi contesto operativo e
+azzerando le storiche problematiche legate alle dipendenze e alle
+configurazioni locali.
+
+\newpage
+\section*{Requisiti Funzionali}
+I requisiti funzionali definiscono le azioni che il sistema deve essere in
+grado di eseguire. Per questa piattaforma sono stati identificati:
+\begin{itemize}
+  \item \textbf{Gestione Identità e Accessi:} Il sistema deve supportare
+    l'autenticazione tramite provider esterni (GitHub), permettendo
+    l'associazione univoca tra l'account OAuth e il profilo utente
+    pre-registrato.
+  \item \textbf{Gestione dei File (Caricamento e Scaricamento):} Gli
+    utenti autorizzati devono poter caricare file e cartelle
+    all'interno del proprio spazio e scaricare i propri contenuti in
+    modo sicuro.
+  \item \textbf{Ciclo di Vita dei Contenuti:} Implementazione di un
+    meccanismo di cancellazione logica (Cestino), con possibilità di
+    ripristino o eliminazione definitiva (cancellazione fisica).
+  \item \textbf{Controllo degli Accessi Granulare:} Differenziazione tra
+    utenti \textit{Standard} (accesso al solo spazio privato) e
+    \textit{Administrator} (gestione utenti e monitoraggio sistema).
+\end{itemize}
+
+\section*{Requisiti Non Funzionali}
+I requisiti non funzionali descrivono le qualità del sistema:
+\begin{itemize}
+  \item \textbf{Affidabilità:} La persistenza dei dati deve essere
+    garantita anche in caso di riavvio dei container, utilizzando volumi
+    Docker persistenti.
+  \item \textbf{Prestazioni:} Il sistema deve garantire tempi di risposta
+    rapidi per le operazioni sui metadati (navigazione cartelle) e un
+    throughput adeguato per il trasferimento dei file binari.
+  \item \textbf{Usabilità:} L'interfaccia deve essere \textit{responsive}
+    e fornire feedback immediati (es. barre di caricamento, notifiche di
+    successo/errore).
+  \item \textbf{Sicurezza:} Tutte le comunicazioni verso l'esterno devono
+    transitare attraverso un reverse proxy, nascondendo la topologia di
+    rete interna.
+\end{itemize}
+
+\section{Scelte Tecnologiche e Strategiche}
+Per soddisfare i requisiti sopra esposti, sono state adottate soluzioni
+tecnologiche d'avanguardia, privilegiando strumenti che favoriscono la
+produttività senza compromettere le prestazioni.
+
+\begin{itemize}
+  \item \textbf{Frontend e Logica Applicativa (Next.js \& React):} La
+    scelta di Next.js è motivata dalla necessità di una gestione
+    efficiente del \textit{Server-Side Rendering} (SSR) e delle
+    \textit{API Routes}, permettendo di unificare lo sviluppo del frontend
+    reattivo con React e della logica di back-end in un unico framework
+    basato su TypeScript.
+  \item \textbf{Backend-as-a-Service (Supabase):} Invece di sviluppare
+    un back-end monolitico, si è optato per lo stack Supabase. Questo
+    permette di sfruttare PostgreSQL per i dati relazionali, GoTrue per
+    l'autenticazione JWT e un servizio di Object Storage dedicato, il
+    tutto integrato tramite un'architettura a microservizi.
+  \item \textbf{Networking e Gateway (Nginx \& Kong):} Nginx viene
+    utilizzato come \textit{Reverse Proxy} primario per la gestione del
+    traffico HTTP/S e il bilanciamento del carico. Kong funge da API
+    Gateway per lo stack Supabase, gestendo la trasformazione delle
+    richieste e la validazione dei token di sicurezza.
+  \item \textbf{Ambiente di Esecuzione (Docker):} L'intera
+    infrastruttura è containerizzata per garantire la massima coerenza tra
+    gli ambienti di sviluppo e produzione, isolando ogni processo nel
+    proprio spazio utente.
+\end{itemize}
+
+% CHAPTER 2
+\chapter{Architettura del Sistema}
+\label{cap:architettura}
+
+\section{Topologia di Rete e Strategie di Isolamento}
+L'architettura del sistema è stata concepita seguendo il paradigma dei
+microservizi, dove ogni unità funzionale opera in un ambiente isolato e comunica
+con le altre attraverso interfacce ben definite. Il fulcro di questa struttura
+è rappresentato da una rete virtuale privata (\textit{Docker Bridge Network}),
+che garantisce un isolamento ermetico dei flussi di traffico interni rispetto
+alla rete pubblica.
+
+In ambiente di produzione, l'unica porta di accesso verso l'esterno è presidiata
+dal servizio Nginx, che opera come \textit{Reverse Proxy} e terminatore delle
+connessioni HTTP. Questa scelta architetturale risponde a precisi requisiti di
+sicurezza:
+\begin{itemize}
+  \item \textbf{Offuscamento dell'Infrastruttura:} Gli indirizzi IP e le
+    porte dei servizi interni (database, storage, auth) non sono mai esposti
+    direttamente, riducendo drasticamente la superficie di attacco.
+  \item \textbf{Centralizzazione del Traffico:} Nginx gestisce la
+    canalizzazione delle richieste, iniettando gli header necessari per la
+    corretta identificazione del client e smistando il traffico in base al
+    percorso URL (\textit{Path-based Routing}).
+  \item \textbf{Gestione del Protocollo:} Il proxy funge da punto unico per
+    l'eventuale implementazione della cifratura TLS/SSL, sollevando i servizi
+    di backend dal carico computazionale della crittografia.
+\end{itemize}
+
+\section{Analisi dei Componenti del Sistema}
+Il sistema si articola in una serie di container specializzati, ognuno dei
+quali implementa una porzione specifica della logica di business o
+dell'infrastruttura di supporto.
+
+\subsection{Nginx: Il Gateway d'Ingresso}
+Il servizio \texttt{nginx-proxy} utilizza l'immagine \texttt{nginx:alpine} per
+garantire un'impronta ridotta e alte prestazioni. Oltre al routing, Nginx è
+configurato per gestire file statici e per operare come barriera di protezione,
+limitando la dimensione delle richieste (\textit{client\_max\_body\_size}) per
+prevenire attacchi di tipo \textit{Denial of Service} basati sull'invio di file
+eccessivamente pesanti non autorizzati.
+
+\subsection{Kong: L'API Gateway dello Stack Supabase}
+Al di sotto del proxy primario opera Kong, un API Gateway \textit{cloud-native}
+estremamente flessibile. Il suo ruolo è fondamentale per l'integrazione dei
+servizi Supabase:
+\begin{itemize}
+  \item \textbf{Routing Interno:} Kong riceve le chiamate da Nginx e le
+    instrada ai microservizi GoTrue, PostgREST o Storage.
+  \item \textbf{Validazione e Sicurezza:} Implementa plugin per il controllo
+    del traffico, la gestione del CORS (\textit{Cross-Origin Resource
+    Sharing}) e la verifica preliminare dei token JWT.
+\end{itemize}
+
+\subsection{Lo Stack di Persistenza e Logica: Supabase Open Source}
+Il cuore logico del sistema è costituito dai componenti dello stack Supabase,
+ognuno dei quali è una soluzione \textit{best-in-class} nel proprio dominio:
+\begin{itemize}
+  \item \textbf{GoTrue (\texttt{supabase-auth}):} Un microservizio scritto in
+    Go per la gestione delle identità. Si occupa della registrazione, del login
+    e dell'emissione di token JWT conformi allo standard RFC 7519. Supporta
+    nativamente l'integrazione con provider OAuth.
+  \item \textbf{PostgREST (\texttt{supabase-rest}):} Questo componente
+    trasforma il database PostgreSQL direttamente in un'interfaccia RESTful.
+    Analizza lo schema del database e genera automaticamente endpoint per le
+    operazioni CRUD, eliminando la necessità di scrivere codice di back-end
+    ripetitivo.
+  \item \textbf{Supabase Storage (\texttt{supabase-storage}):} Un servizio
+    dedicato alla gestione dei file binari (\textit{Blobs}). Permette
+    l'organizzazione dei file in \textit{Buckets} e gestisce i permessi di
+    accesso tramite policy RLS (\textit{Row Level Security}) definite nel
+    database.
+  \item \textbf{PostgreSQL (\texttt{supabase-db}):} Il motore relazionale
+    che ospita non solo i dati degli utenti e i metadati dei file, ma anche
+    tutta la logica di autorizzazione.
+\end{itemize}
+
+\section{Interazioni tra i Componenti e Protocolli}
+La comunicazione tra i microservizi avviene prevalentemente tramite
+il protocollo \newline HTTP/1.1, utilizzando il formato JSON per lo scambio
+dei messaggi. Il flusso tipo di una richiesta di caricamento file
+illustra l'interazione complessa tra le parti:
+\begin{enumerate}
+  \item Il client web (l'applicazione frontend nel browser) invia una
+    richiesta \texttt{POST} all'API Gateway, intercettata inizialmente da Nginx.
+  \item Nginx valida il path e agisce da reverse proxy, inoltrando la
+    richiesta a Kong.
+  \item Kong verifica la validità del token JWT e, in caso di
+    successo, passa la richiesta al servizio Storage.
+  \item Il servizio Storage interroga PostgreSQL per verificare che l'utente
+    abbia i permessi di scrittura nella cartella di destinazione.
+  \item Ottenuta l'autorizzazione, lo Storage salva il file sul
+    volume persistente e restituisce una conferma dell'operazione al client.
+\end{enumerate}
+
+\newpage
+\section{Diagramma delle Interazioni}
+La Figura~\ref{fig:architecture} descrive visivamente la gerarchia dei servizi.
+È possibile osservare come l'isolamento sia strutturato a livelli: dal client
+esterno, attraverso i gateway, fino alla base dati protetta nel livello più
+interno dell'infrastruttura.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{./img/architecture.png}
+  \caption{Diagramma architetturale dettagliato delle interconnessioni tra i
+    microservizi e i flussi di dati. Immagine generata con l'ausilio di
+  \cite{gemini}.}
+  \label{fig:architecture}
+\end{figure}
+
+% CHAPTER 3
+\chapter{Containerizzazione e Deployment}
+\label{cap:docker}
+
+\section{Ingegnerizzazione delle Immagini}
+La containerizzazione del sistema non è stata intesa solo come uno
+strumento di isolamento, ma come un processo di ottimizzazione del
+ciclo di vita del software. Il componente più critico in termini di
+dimensioni e complessità di compilazione è la web-app Next.js, per la
+quale è stato progettato un \texttt{Dockerfile} basato sulla logica
+\textit{multi-stage}.
+
+Questa tecnica permette di suddividere il processo di creazione
+dell'immagine in fasi distinte:
+\begin{enumerate}
+  \item \textbf{Dependency Stage:} Vengono scaricate le dipendenze
+    necessarie basandosi sul file \texttt{package-lock.json}. Questa
+    fase è separata per sfruttare i meccanismi di caching di Docker,
+    riducendo i tempi di build successivi.
+  \item \textbf{Build Stage:} Il codice sorgente viene trasformato in
+    un bundle ottimizzato per la produzione tramite il compilatore Next.js.
+  \item \textbf{Runner Stage:} Vengono copiati solo gli artefatti
+    necessari all'esecuzione (il bundle \texttt{.next} e le
+    dipendenze di produzione), utilizzando un'immagine base node:alpine.
+\end{enumerate}
+
+Il risultato finale è un'immagine di produzione estremamente leggera,
+priva di strumenti di build e codice sorgente originale, il che
+riduce sensibilmente la superficie di attacco (\textit{Attack Surface
+Management}).
+
+\section{Orchestrazione e Gestione del Ciclo di Vita}
+La gestione di una flotta di microservizi richiede un coordinamento
+preciso, implementato tramite Docker Compose. La configurazione di
+produzione (\texttt{docker-compose.yml}) non si limita a definire i
+container, ma stabilisce la logica di dipendenza e la gestione dell'ambiente.
+
+Un aspetto fondamentale è l'uso delle \textit{Environment Variables}.
+Il sistema utilizza file \texttt{.env} differenziati per iniettare
+configurazioni critiche (come chiavi JWT, credenziali del database e
+URL dei servizi) direttamente nel runtime dei container. Questo
+approccio garantisce che l'immagine rimanga immutabile e che le
+configurazioni specifiche dell'host siano separate dal codice.
+
+La direttiva \texttt{depends\_on} viene utilizzata per definire un
+ordine di avvio deterministico. Ad esempio, il gateway Kong attende
+l'inizializzazione dei servizi di autenticazione e di storage, mentre
+l'applicazione web attende che il gateway sia pronto a ricevere
+connessioni. Questo previene errori di connessione durante la fase di
+\textit{startup} dell'intero ecosistema.
+
+\section{Persistenza del Dato e Integrità del Filesystem}
+Una delle sfide principali nella progettazione di un'architettura
+basata su container è la gestione dello stato. Per definizione,
+infatti, il filesystem interno di un container è volatile: ogni
+riavvio o aggiornamento comporterebbe la perdita irreparabile delle
+informazioni accumulate. Al fine di garantire la persistenza a lungo
+termine e l'integrità dei dati, si è optato per una strategia ibrida
+che sfrutta in modo mirato sia i \textit{Named Volumes} che i
+\textit{Bind Mounts}.
+
+\subsection{Named Volumes per la Base Dati e lo Storage}
+Per salvaguardare le componenti \textit{stateful} del sistema, ovvero
+il database PostgreSQL e il servizio di Object Storage, sono stati
+implementati appositi volumi nominati (quali \texttt{db-data} e
+\texttt{storage-data}). A differenza dell'ambiente di esecuzione del
+container, lo strato di memorizzazione di questi volumi è delegato e
+gestito in autonomia dal demone Docker, permettendo loro di
+sopravvivere all'intero ciclo di vita del container stesso. Questo
+approccio architetturale assicura che sia i file fisici caricati
+dagli utenti, sia la coerenza delle transazioni registrate nel
+database, rimangano del tutto inalterati anche a fronte di
+aggiornamenti o interventi di manutenzione straordinaria.
+
+\subsection{Bind Mounts per le Configurazioni Dinamiche}
+Un approccio differente è stato adottato per la gestione dei file di
+configurazione (come, ad esempio, le direttive contenute in
+\texttt{kong.yml} o i template di Nginx). In questo caso si è fatto
+ricorso ai \textit{bind mounts} configurati in modalità di sola
+lettura (\texttt{ro}). Tale soluzione offre un duplice vantaggio. Da
+un lato, conferisce grande flessibilità operativa: risulta infatti
+possibile alterare il comportamento dei servizi modificando i file
+direttamente sul sistema host, senza la necessità di dover effettuare
+lunghe e dispendiose procedure di \textit{rebuild} delle immagini.
+Dall'altro lato, garantisce un rigoroso isolamento dal punto di vista
+della sicurezza, poiché impedisce fisicamente ai microservizi di
+sovrascrivere o alterare i propri parametri operativi dall'interno.
+
+\section{Strategia di Deployment Self-hosted}
+A coronamento delle scelte architetturali descritte, l'intera
+infrastruttura è  stata concepita con una forte vocazione
+\textit{cloud-agnostic}. L'assenza di  vincoli tecnologici stringenti
+verso specifici \textit{cloud provider}, unita  alla
+standardizzazione offerta da Docker Compose, fa sì che il processo di
+\textit{deployment} si semplifichi drasticamente. Che si tratti di un
+server fisico  dedicato o di un ambiente VPS (\textit{Virtual Private
+Server}), la messa in  produzione del sistema si risolve in poche e
+semplici istruzioni di orchestrazione.  Questo risultato non solo
+conferma l'efficacia della containerizzazione nel  mascherare la
+complessità tipica dei moderni sistemi distribuiti, ma evidenzia
+anche una chiara opportunità di abbattimento dei costi operativi in
+scenari  di \textit{self-hosting}.
+
+% CHAPTER 4
+\chapter{Protocolli e Tecnologie Utilizzate}
+\label{cap:protocolli}
+
+\section{Interfacce di Comunicazione}
+La comunicazione tra i vari livelli dell'applicazione è regolata dal paradigma
+\textit{REpresentational State Transfer} (REST), che sfrutta le caratteristiche
+native del protocollo HTTP/1.1 per la manipolazione delle risorse. Ogni entità
+del sistema (file, cartella, utente) è identificata da un URI univoco e le
+operazioni vengono eseguite utilizzando i metodi standard:
+\begin{itemize}
+  \item \textbf{GET:} Per il recupero dei metadati e il download dei contenuti.
+  \item \textbf{POST:} Per la creazione di nuove risorse e il caricamento di
+    file binari.
+  \item \textbf{DELETE:} Per l'eliminazione (logica o fisica) delle entità.
+\end{itemize}
+L'uso di un'architettura \textit{stateless} permette una maggiore scalabilità,
+poiché ogni richiesta contiene tutte le informazioni necessarie (inclusi i
+token di autenticazione) per essere elaborata indipendentemente dalle
+precedenti.
+
+\newpage
+\section{Modello di Persistenza Ibrido}
+Il sistema gestisce due tipologie di dati profondamente diverse, adottando una
+strategia di persistenza differenziata per ottimizzare prestazioni e coerenza.
+
+\subsection{Dati Relazionali e Metadati: PostgreSQL}
+Tutte le informazioni strutturate, come la gerarchia del filesystem, i profili
+utente, i log di sistema e i permessi di accesso, sono gestite da PostgreSQL.
+L'uso di un database relazionale garantisce la conformità alle proprietà
+\textit{ACID} (\textit{Atomicity, Consistency, Isolation, Durability}),
+fondamentale per assicurare che un'operazione complessa (come lo spostamento di
+una cartella con molti file) avvenga in modo atomico, prevenendo stati di
+incoerenza.
+
+\subsection{Archiviazione Binaria: Object Storage S3-Compatible}
+Per i file fisici carichi dagli utenti, si è scelto di non utilizzare il
+filesystem tradizionale del sistema operativo, bensì un servizio di
+\textit{Object Storage}. Questa tecnologia permette di archiviare grandi
+volumi di dati non strutturati (\textit{Blobs}) in \textit{Buckets} virtuali.
+Il sistema utilizza un backend compatibile con le API di Amazon S3, il che
+garantisce un'estrema flessibilità: in fase di produzione locale i file sono
+salvati su volumi Docker, ma l'intera infrastruttura può essere migrata verso
+servizi cloud (come AWS S3 o MinIO) senza alcuna modifica al codice applicativo.
+
+\newpage
+\section{Ecosistema Frontend e Sviluppo Applicativo}
+Lo sviluppo dell'interfaccia utente e della logica client-side è stato guidato
+dalla ricerca di reattività, manutenibilità e sicurezza tipologica.
+
+\subsection{Framework e Runtime: Next.js e React 19}
+Il cuore dell'interfaccia è basato su React 19, integrato all'interno del
+framework Next.js. Questa combinazione permette di sfruttare i \textit{React
+Server Components} (RSC) per ridurre il carico sul client, eseguendo la logica
+di recupero dati direttamente sul server. Le \textit{Server Actions} vengono
+impiegate per gestire le mutazioni dei dati (upload, rinomina) in modo sicuro,
+riducendo la necessità di endpoint API complessi esposti pubblicamente.
+
+\subsection{Linguaggio e Tipizzazione: TypeScript}
+L'intero progetto è scritto in TypeScript, un sovrainsieme di JavaScript che
+introduce la tipizzazione statica. L'adozione di TypeScript ha permesso di
+individuare errori a tempo di compilazione e di definire contratti rigorosi tra
+il frontend e le API di backend, migliorando drasticamente la robustezza del
+codice e facilitando le operazioni di \textit{refactoring}.
+
+\subsection{Design di Sistema: Tailwind CSS e Radix UI}
+Per la parte estetica e l'accessibilità, si è utilizzato Tailwind CSS, un
+framework \textit{utility-first} che consente di costruire interfacce
+personalizzate e \textit{responsive} con estrema rapidità. Per i componenti più
+complessi (come dialoghi modali e menu a tendina), sono state impiegate le
+primitive di Radix UI, garantendo il rispetto degli standard di accessibilità
+(\textit{WAI-ARIA}) e una fluida interazione utente.
+
+% CHAPTER 5
+\chapter{Gestione Utenti e Autenticazione}
+\label{cap:autenticazione}
+
+\section{Modello di Autenticazione Stateless: JSON Web Tokens}
+La sicurezza degli accessi è garantita da un sistema di autenticazione
+\textit{stateless} basato sullo standard JSON Web Token (JWT). A differenza dei
+sistemi tradizionali basati su sessioni lato server, il JWT permette di
+trasferire le informazioni sull'identità dell'utente direttamente all'interno
+del token stesso, che viene firmato crittograficamente dal server per
+prevenire manomissioni.
+
+Il token generato dal sistema contiene diversi \textit{claims} fondamentali:
+\begin{itemize}
+  \item \textbf{sub (Subject):} L'UUID univoco dell'utente nel sistema.
+  \item \textbf{role:} Il ruolo assegnato (es. \textit{authenticated},
+    \textit{service\_role}), utilizzato per il controllo degli accessi.
+  \item \textbf{exp (Expiration Time):} Il timestamp che definisce la validità
+    temporale del token, riducendo i rischi in caso di intercettazione.
+\end{itemize}
+Il client memorizza il token in cookie cifrati e \textit{HTTP-only}, garantendo
+che le credenziali non siano accessibili da script malevoli (\textit{Cross-Site
+Scripting - XSS}).
+
+\section{Integrazione delle Identità}
+Il modulo di gestione delle identità si avvale di GoTrue, un servizio
+intermediario tra utenti e database. Per garantire la massima
+flessibilità, il sistema supporta un modello di autenticazione
+ibrido, combinando le credenziali tradizionali con i moderni
+protocolli di delega dell'identità.
+
+\subsection{Autenticazione Standard: Email e Password}
+Come meccanismo di accesso primario, il sistema adotta
+l'autenticazione standard tramite email e password. GoTrue gestisce
+in modo centralizzato l'intero ciclo di vita delle identità digitali.
+Per tutelare la riservatezza dei dati at-rest, le password non sono
+mai archiviate in chiaro (plaintext), ma memorizzate avvalendosi di
+robusti algoritmi di hashing crittografico unidirezionale, come
+bcrypt. In fase di accesso, GoTrue elabora la password fornita e la
+confronta con l'hash salvato nel database. In caso di esito positivo,
+rilascia un JSON Web Token (JWT) che autorizza l'utente a interagire
+in sicurezza con i microservizi dell'architettura.
+
+\subsection{Integrazione OAuth 2.0 con GitHub}
+Parallelamente al metodo tradizionale, il sistema integra il
+protocollo OAuth 2.0 per consentire il Single Sign-On (SSO) tramite
+GitHub. L'utente avvia la richiesta selezionando il provider esterno,
+dopodiché GoTrue la instrada verso i server di GitHub. A convalida
+avvenuta, viene restituito un Authorization Code temporaneo, che
+GoTrue intercetta e scambia con un token di accesso effettivo.
+Contestualmente, il sistema verifica che l'email associata
+all'account GitHub appartenga alla lista degli utenti pre-autorizzati
+dall'amministratore. Solo in caso affermativo viene generato e
+rilasciato il token JWT locale.
+
+Questo approccio ibrido offre il vantaggio di delegare l'onere e i
+rischi legati alle credenziali a una piattaforma esterna consolidata,
+conservando al contempo un controllo centralizzato, granulare e
+restrittivo sugli accessi alle risorse locali
+
+\section{Autorizzazione a Livello di Database}
+Una caratteristica distintiva dell'architettura è lo spostamento della logica
+di autorizzazione dal livello applicativo direttamente al livello del database,
+sfruttando la \textit{Row Level Security} (RLS) di PostgreSQL.
+
+Invece di affidarsi esclusivamente a controlli nel codice Next.js, sono state
+definite delle policy SQL che filtrano i dati in base all'identità contenuta nel
+JWT. Quando una richiesta API (tramite PostgREST o Storage) interroga il
+database, PostgreSQL estrae automaticamente l'ID dell'utente dal token e
+applica le seguenti regole:
+\begin{itemize}
+  \item \textbf{Isolamento Totale:} Un utente può visualizzare e modificare
+    solo le righe (file o cartelle) che possiedono il suo UUID come
+    proprietario.
+  \item \textbf{Gerarchia dei Ruoli:} Gli utenti con ruolo \textit{Admin}
+    possono bypassare alcune restrizioni per scopi di gestione e invito utenti.
+  \item \textbf{Sicurezza degli Oggetti:} Le policy RLS si estendono anche al
+    servizio Storage, impedendo il download di file se l'utente non ha i
+    permessi espliciti sui metadati corrispondenti.
+\end{itemize}
+Questa strategia realizza il principio del \textit{Least Privilege}, assicurando
+che, anche in caso di vulnerabilità nel frontend, i dati rimangano protetti
+dalle protezioni native del motore database.
+
+\newpage
+\section{Diagramma del Flusso di Autenticazione}
+La Figura~\ref{fig:gotrue_auth_flow} illustra il percorso di una richiesta
+autenticata, evidenziando il ruolo di GoTrue nell'emissione del token e l'uso
+delle policy RLS per la validazione finale dell'accesso ai dati.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{img/auth.png}
+  \caption{Flusso logico dell'autenticazione tramite JWT e applicazione delle
+  policy di sicurezza RLS. Immagine generata con l'ausilio di \cite{gemini}.}
+  \label{fig:gotrue_auth_flow}
+\end{figure}
+
+% CHAPTER 6
+\chapter{Analisi delle Prestazioni e Sviluppi Futuri}
+\label{cap:prestazioni_estensioni}
+
+\section{Valutazione delle Prestazioni e Validazione}
+Per garantire che l'infrastruttura soddisfi i requisiti non funzionali definiti
+nella fase di progettazione, è stata condotta un'analisi sistematica delle
+prestazioni tramite uno script di \textit{benchmarking} dedicato. La
+validazione si è concentrata su tre metriche chiave: latenza dei servizi,
+efficienza del throughput di storage e consumo di risorse dei container.
+
+\subsection{Latenza e Reattività dei Servizi}
+I test di latenza eseguiti sui singoli microservizi hanno confermato
+un'elevata reattività dell'intera infrastruttura. Le rilevazioni hanno
+mostrato i seguenti tempi di risposta medi:
+\begin{itemize}
+  \item \textbf{Servizio di Autenticazione (GoTrue):} Latenza di risposta
+    prossima allo zero ($<0.01$s), a conferma dell'efficienza del microservizio
+    in Go.
+  \item \textbf{Storage API:} Risposta immediata ($<0.01$s) per le chiamate di
+    stato.
+  \item \textbf{Database (PostgreSQL):} Latenza di connessione di circa
+    $0.065$s, un valore ottimale per le operazioni transazionali.
+  \item \textbf{API Gateway (Kong):} Latenza di $0.227$s per l'health check,
+    che include il tempo di elaborazione interno del gateway.
+\end{itemize}
+Questi dati dimostrano che il concatenamento dei servizi (Nginx $\rightarrow$
+Kong $\rightarrow$ Backend) non introduce ritardi percepibili dall'utente
+finale.
+
+\subsection{Analisi del Throughput e I/O di Storage}
+Le prestazioni dei volumi Docker sono state testate simulando la scrittura di
+blocchi di dati da $100$MB. I risultati evidenziano un'eccezionale velocità di
+trasferimento, facilitata dalla gestione efficiente dei volumi nominati:
+\begin{itemize}
+  \item \textbf{Volume Storage:} Raggiunto un throughput di circa $2.8$ GB/s
+    nella scrittura sequenziale.
+  \item \textbf{Volume Database:} Prestazioni analoghe con una larghezza di
+    banda di $2.8$ GB/s.
+\end{itemize}
+Tali valori garantiscono che il caricamento e lo scaricamento di file binari,
+così come le operazioni intensive su disco del database, non rappresentino mai
+un limite per la scalabilità del sistema.
+
+\subsection{Monitoraggio del Consumo di Risorse}
+L'analisi istantanea del carico di lavoro (\textit{snapshot monitoring}) ha
+evidenziato un utilizzo delle risorse estremamente bilanciato. La
+Tabella~\ref{tab:docker_stats} riporta il dettaglio del consumo di CPU, memoria
+e I/O per ogni servizio attivo nell'infrastruttura.
+
+\begin{table}[htbp]
+  \centering
+  \resizebox{\textwidth}{!}{
+    \begin{tabular}{|l|r|r|r|r|r|}
+      \hline
+      \textbf{Servizio} & \textbf{CPU \%} & \textbf{Memoria
+      (Uso/Limite)} & \textbf{Mem \%} & \textbf{Net I/O} &
+      \textbf{Block I/O} \\ \hline
+      nginx-proxy & 0.00\% & 13.68 MiB / 3.827 GiB & 0.35\% & 956 B /
+      126 B & 6.93 MB / 16.4 kB \\ \hline
+      web-app & 0.00\% & 94.41 MiB / 3.827 GiB & 2.41\% & 998 B / 126
+      B & 70.0 MB / 0 B \\ \hline
+      supabase-kong & 8.82\% & 101.5 MiB / 3.827 GiB & 2.59\% & 1.42
+      kB / 126 B & 28.3 MB / 508 kB \\ \hline
+      supabase-storage & 0.00\% & 311.1 MiB / 3.827 GiB & 7.94\% &
+      41.9 kB / 120 kB & 149.0 MB / 0 B \\ \hline
+      supabase-auth & 0.00\% & 36.82 MiB / 3.827 GiB & 0.94\% & 43.8
+      kB / 88.5 kB & 26.8 MB / 0 B \\ \hline
+      supabase-rest & 0.17\% & 67.96 MiB / 3.827 GiB & 1.73\% & 229.0
+      kB / 115 kB & 53.3 MB / 0 B \\ \hline
+      supabase-db & 0.04\% & 118.6 MiB / 3.827 GiB & 3.03\% & 326.0
+      kB / 310 kB & 64.4 MB / 53.7 MB \\ \hline
+    \end{tabular}
+  }
+  \caption{Report istantaneo del consumo di risorse rilevato tramite
+  il comando \texttt{docker stats}.}
+  \label{tab:docker_stats}
+\end{table}
+
+Il consumo complessivo dell'intera infrastruttura si attesta intorno ai $740$
+MiB di RAM. Questo conferma la sostenibilità del sistema anche su
+macchine host con dotazione di memoria limitata, grazie all'uso di
+immagini Alpine ottimizzate.
+
+\section{Visione Futura e Possibili Estensioni}
+
+\subsection{Collaborazione e Condivisione Granulare}
+Un'evoluzione naturale prevede il superamento dell'isolamento totale degli
+utenti per introdurre funzionalità di collaborazione. L'implementazione di
+\textit{Access Control Lists} (ACL) dinamiche permetterebbe agli utenti di
+condividere singole risorse con permessi specifici (sola lettura, modifica).
+Questo richiederebbe un aggiornamento delle policy RLS in PostgreSQL per
+integrare verifiche su una tabella di relazioni \textit{cross-user}.
+
+\subsection{Integrazione di Anteprime Multimediali}
+Per migliorare l'esperienza d'uso, una possibile estensione riguarda la
+generazione automatica di anteprime (\textit{thumbnails}) per immagini e
+documenti PDF. Questo potrebbe essere realizzato tramite un microservizio
+dedicato, attivato da \textit{Database Webhooks} al momento del caricamento di
+un nuovo file, che elabora il binario e salva l'anteprima in un bucket di cache
+dedicato.
+
+\subsection{Scalabilità Orizzontale e Cloud Nativo}
+In ottica di scalabilità geografica, l'architettura attuale può evolvere verso
+un modello distribuito. Il passaggio da Docker Compose a Kubernetes (K8s)
+permetterebbe l'auto-scaling dei nodi di frontend e API Gateway in base al
+traffico. Inoltre, la migrazione dello storage locale verso servizi distribuiti
+come Amazon S3 garantirebbe la ridondanza dei dati su più zone di
+disponibilità, eliminando i rischi legati al singolo punto di guasto
+(\textit{Single Point of Failure}) dell'hardware locale.
+
+% CONCLUSIONI
+\chapter*{Conclusioni}
+\addcontentsline{toc}{chapter}{Conclusioni}
+Il presente lavoro ha condotto alla realizzazione di un sistema di
+cloud storage completo, sicuro e performante, dimostrando l'efficacia
+delle moderne architetture basate su microservizi containerizzati.
+Attraverso le diverse fasi di analisi, progettazione e
+implementazione, è stato possibile affrontare e risolvere le sfide
+tecniche legate alla gestione distribuita dei dati, raggiungendo
+pienamente gli obiettivi prefissati in termini di autonomia
+(\textit{self-hosting}) e scalabilità.
+
+Un elemento cardine del successo del progetto risiede nella scelta di
+un approccio ibrido alla persistenza, che ha permesso di coniugare il
+rigore transazionale di PostgreSQL per la gestione dei metadati con
+l'efficienza e la flessibilità di un Object Storage compatibile con
+S3. Tale separazione architetturale non solo ha ottimizzato le
+prestazioni del sistema, ma ha anche garantito una chiara linea di
+demarcazione tra la logica di business e l'archiviazione massiva dei dati.
+
+Sotto il profilo della sicurezza, l'adozione di una filosofia
+\textit{Security by Design}, implementata tramite l'uso di
+\textit{Reverse Proxy}, \textit{API Gateways}, autenticazione JWT e
+policy di \textit{Row Level Security}, ha permesso di costruire un
+ambiente ermetico e resiliente. Lo spostamento della logica di
+autorizzazione direttamente sul database ha rappresentato un salto di
+qualità fondamentale, assicurando che l'integrità dei dati sia
+protetta da meccanismi nativi e indipendenti dal codice applicativo.
+
+L'impiego di Docker e delle logiche di orchestrazione ha confermato
+la loro centralità nel panorama IT contemporaneo: la capacità di
+standardizzare gli ambienti di esecuzione ha azzerato le complessità
+di deployment, rendendo il sistema pronto per la distribuzione in
+scenari reali, dal server privato ai cluster cloud gestiti.
+
+In conclusione, questo percorso di sviluppo non ha rappresentato solo
+una sfida ingegneristica, ma è stato un fondamentale momento di
+sintesi formativa. Le competenze acquisite nell'integrazione di
+tecnologie d'avanguardia (Next.js, React 19, Supabase, Kong) e nella
+gestione sistematica dei protocolli di rete costituiscono una base
+solida per affrontare la progettazione di sistemi distribuiti di
+prossima generazione, in un ecosistema digitale sempre più orientato
+verso la modularità e la sovranità tecnologica.
+
+% APPENDIX
+\appendix
+\chapter{Manuale Operativo e Guida all'Installazione}
+\label{app:user_guide}
+
+\section{Prerequisiti di Sistema}
+L'attivazione e il corretto funzionamento dell'infrastruttura richiedono la
+presenza di un ambiente di esecuzione basato su container. È indispensabile
+che sulla macchina ospite siano installati:
+\begin{itemize}
+  \item \textbf{Docker Engine (v20.10+):} Per la gestione dei container e dei
+    volumi.
+  \item \textbf{Docker Compose (v2.0+):} Per l'orchestrazione dei servizi
+    definiti nei file di configurazione YAML.
+  \item \textbf{Node.js e NPM (opzionale):} Necessari esclusivamente per
+    l'esecuzione del frontend in modalità di sviluppo locale.
+\end{itemize}
+
+\newpage
+\section{Configurazione delle Variabili d'Ambiente}
+Il sistema utilizza una gestione rigorosa delle configurazioni tramite variabili
+d'ambiente, fondamentali per garantire la portabilità tra diversi scenari di
+deployment. Prima di procedere all'avvio, è necessario predisporre i file di
+configurazione partendo dai template forniti (\texttt{example.env}):
+
+\begin{enumerate}
+  \item \textbf{Root Project:} Copiare \texttt{example.env} in \texttt{.env}
+    per configurare i parametri globali.
+  \item \textbf{Directory \texttt{web/}:} Creare i file
+    \texttt{.env.development} o \texttt{.env.production} con gli URL degli
+    endpoint API e le chiavi anonime di Supabase.
+  \item \textbf{Directory \texttt{supabase/}:} Predisporre il file
+    \texttt{.env} con le credenziali del database e le chiavi segrete per la
+    firma dei token JWT.
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{./img/structure.png}
+  \caption{Rappresentazione della gerarchia dei file di configurazione e della
+  struttura del progetto. Immagine generata con l'ausilio di \cite{gemini}.}
+  \label{fig:project_structure}
+\end{figure}
+
+\section{Procedure di Inizializzazione}
+
+\subsection{Ambiente di Sviluppo}
+L'ambiente di sviluppo può essere avviato seguendo due approcci
+operativi distinti, a seconda delle necessità e dell'ambiente di riferimento.
+
+\begin{enumerate}
+  \item \textbf{Backend:} Dalla directory della web-app
+    (\texttt{./web}) del progetto, avviare i servizi Supabase tramite
+    la CLI dedicata:
+    \begin{center}
+      \texttt{npx supabase start --env-file supabase/.env}
+    \end{center}
+    Questo comando provvede a istanziare i \textit{container}
+    necessari e ad applicare automaticamente le migrazioni SQL
+    presenti all'interno del percorso supabase/migrations/.
+
+  \item \textbf{Frontend:} Per quanto riguarda l'interfaccia utente,
+    è possibile procedere in due modi. Accedendo alla directory
+    \texttt{web/}, si può avviare l'ambiente di sviluppo locale tramite Node.js:
+    \begin{center}
+      \texttt{npm ci \&\& npm run dev}
+    \end{center}
+    In alternativa, per orchestrare l'applicativo
+    \textit{client-side} tramite container, è possibile eseguire
+    l'apposito file di configurazione Docker:
+    \begin{center}
+      \texttt{docker compose -f 'docker-compose.dev.yml'
+      up -d --build}
+    \end{center}
+\end{enumerate}
+
+\noindent A seguito del corretto avvio, i servizi dell'ambiente di
+sviluppo risulteranno accessibili localmente ai seguenti indirizzi e porte:
+\begin{itemize}
+  \item \textbf{Applicazione Web (Frontend):} \texttt{http://localhost:3000}
+  \item \textbf{API Gateway (Kong):} \texttt{http://localhost:54321}
+    (Punto di accesso unificato per le API di Supabase).
+  \item \textbf{Database (PostgreSQL):} \texttt{localhost:54322}
+    (Accessibile tramite connessione diretta con client database).
+  \item \textbf{Supabase Studio:} \texttt{http://localhost:54323}
+    (Interfaccia grafica (dashboard) per la gestione del database e
+    dei servizi).
+  \item \textbf{Mailpit:} \texttt{http://localhost:54324}
+    (Monitoraggio delle email transazionali e di sistema).
+  \item \textbf{Analytics (Logflare):}
+    \texttt{http://localhost:54327} (Sistema di gestione e analisi dei log).
+\end{itemize}
+
+\subsection{Ambiente di Produzione (Self-hosted)}
+In modalità di produzione, l'intero stack viene orchestrato come un'unica
+entità atomica, ottimizzata per le prestazioni e la sicurezza:
+
+\begin{enumerate}
+  \item \textbf{Build e Avvio:} Eseguire il comando di orchestrazione:
+    \begin{center}
+      \texttt{docker compose up -d --build}
+    \end{center}
+    Docker provvederà alla compilazione multi-stage del frontend e al
+    configuramento del reverse proxy Nginx.
+
+  \item \textbf{Verifica Stato:} Monitorare il corretto avvio di tutti i
+    servizi tramite:
+    \begin{center}
+      \texttt{docker compose ps}
+    \end{center}
+\end{enumerate}
+
+L'applicazione sarà esposta esclusivamente tramite Nginx sulla porta configurata
+(default 80), garantendo che tutto il traffico verso i microservizi interni sia
+adeguatamente filtrato e instradato.
+
+\section{Manutenzione e Arresto}
+Per terminare l'esecuzione di tutti i servizi preservando l'integrità dei dati
+memorizzati nei volumi persistenti, utilizzare il comando:
+\begin{center}
+  \texttt{docker-compose down}
+\end{center}
+In caso sia necessaria una rimozione completa che includa anche i volumi di
+persistenza (attenzione: operazione distruttiva), aggiungere il flag
+\texttt{-v}.
+
+\chapter{Mappa delle Rotte dell'Applicazione}
+\label{app:routes}
+L'applicazione di frontend è stata sviluppata utilizzando il
+paradigma \textit{App Router} introdotto nelle versioni recenti di
+Next.js. Questo approccio permette di definire la struttura di
+navigazione direttamente attraverso il \textit{file system},
+organizzando le viste (page), i layout e le logiche server-side
+(actions e route handlers) all'interno della directory \texttt{src/app/}.
+
+Di seguito è presentata la mappatura delle rotte principali
+dell'applicazione, suddivise per area funzionale.
+
+\section{Rotte di Autenticazione (\texttt{/auth})}
+Quest'area gestisce i flussi di registrazione, accesso e recupero
+credenziali. Le viste sono avvolte da un layout dedicato
+(\texttt{layout.tsx}) che presenta l'interfaccia in un formato
+compatto a scheda centrale.
+\begin{itemize}
+  \item \texttt{/auth/sign-in}: Pagina principale di accesso.
+    Permette il login tramite credenziali standard (email/password) o
+    delegato tramite provider OAuth 2.0 (GitHub).
+  \item \texttt{/auth/forgot-password}: Modulo per la richiesta di
+    ripristino della password tramite invio di un'email contenente un
+    link temporaneo generato da Supabase.
+  \item \texttt{/auth/reset-password}: Interfaccia protetta in cui
+    l'utente atterra dopo aver cliccato il link di ripristino per
+    impostare la nuova password.
+\end{itemize}
+
+\section{Rotte Principali dell'Applicazione (\texttt{/drive})}
+Costituisce il nucleo operativo del servizio cloud. Tutte le rotte in
+questa sezione sono protette: l'accesso è subordinato alla presenza
+di un JWT valido verificato dal middleware (\texttt{proxy.ts}).
+L'interfaccia è gestita da un layout strutturato con barra laterale
+di navigazione (\textit{sidebar}).
+\begin{itemize}
+  \item \texttt{/drive/home}: Dashboardprincipale dell'utente.
+    Visualizza l'albero delle directory,permette la navigazione tra
+    cartelle, il caricamentodrag-and-drop e la gestione base dei file.
+  \item \texttt{/drive/account}: Pannello di configurazione del
+    profilo personale. Consente all'utente di modificare il proprio
+    username, aggiornare l'indirizzo email e cambiare la password in sicurezza.
+  \item \texttt{/drive/trash}: Sezione "Cestino". Mostra i file
+    eliminati logicamente (soft-delete). Da qui l'utente può
+    scegliere di ripristinare i dati nella posizione originale o di
+    eliminarli permanentemente dallo strato di object storage.
+  \item \texttt{/drive/users}: Rotta ad accesso riservato
+    esclusivamente agli ammin istratori. Permette di visualizzare la
+    lista degli utentiregistrati e inviare nuovi inviti tramite email.
+\end{itemize}
+
+\section{Rotte di Inizializzazione (\texttt{/setup})}
+Una sezione speciale concepita per semplificare la prima messa in
+opera del sistema in ambienti \textit{self-hosted}.
+\begin{itemize}
+  \item \texttt{/setup/profile}: Primo avvio dell'applicativo.
+    Permette la creazione del profilo Amministratore radice
+    (\textit{Root Admin}), necessario per aggirare il blocco iniziale
+    delle registrazioni pubbliche.
+  \item \texttt{/setup/start-up}: Fase finale dell'inizializzazione.
+    Si occupa di configurare automaticamente i \textit{bucket} di
+    archiviazione fisici nello storage e di applicare le policy di
+    sicurezza RLS.
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{report}
+
+\end{document}
