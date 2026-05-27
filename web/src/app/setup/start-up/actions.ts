@@ -13,16 +13,20 @@ export async function createFilesBucket() {
 
     const { data: bucket, error: checkError } = await supabaseAdmin.storage.getBucket("files");
 
-    if (bucket && !checkError) {
-        return { success: true };
+    if (!bucket || checkError) {
+        const { error: createError } = await supabaseAdmin.storage.createBucket("files", {
+            public: false,
+        });
+
+        if (createError) {
+            return { error: createError.message };
+        }
     }
 
-    const { error: createError } = await supabaseAdmin.storage.createBucket("files", {
-        public: false,
-    });
-
-    if (createError) {
-        return { error: createError.message };
+    const { error: rpcError } = await supabaseAdmin.rpc("create_storage_policies");
+    if (rpcError) {
+        console.error("Error creating storage policies:", rpcError.message);
+        return { error: rpcError.message };
     }
 
     return { success: true };

@@ -63,27 +63,27 @@ export async function updateSession(request: NextRequest) {
 
 	if (!user) {
 		const supabaseAdmin = createAdminClient();
-		const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
 
+		const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers();
 		if (!users?.length || error) {
-			if (!pathname.startsWith("/setup")) {
+			if (pathname !== "/setup/profile") {
 				return NextResponse.redirect(new URL("/setup/profile", request.url));
 			}
-		} else {
-			const { data: bucket, error: bucketError } = await supabaseAdmin.storage.getBucket("files");
-
-			if (!bucket || bucketError) {
-				if (!pathname.startsWith("/setup/start-up")) {
-					return NextResponse.redirect(new URL("/setup/start-up", request.url));
-				}
-			} else {
-				if (!pathname.startsWith("/auth")) {
-					return NextResponse.redirect(new URL("/auth/sign-in", request.url));
-				}
-			}
+			return NextResponse.next();
 		}
-	}
-	else {
+
+		const { data: bucket, error: bucketError } = await supabaseAdmin.storage.getBucket("files");
+		if (!bucket || bucketError) {
+			if (pathname !== "/setup/start-up") {
+				return NextResponse.redirect(new URL("/setup/start-up", request.url));
+			}
+			return NextResponse.next();
+		}
+
+		if (!pathname.startsWith("/auth")) {
+			return NextResponse.redirect(new URL("/auth/sign-in", request.url));
+		}
+	} else {
 		if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/setup")) {
 			return NextResponse.redirect(new URL("/drive", request.url));
 		}
