@@ -46,7 +46,7 @@ export function CreateFolderDialog({ onCreate }: CreateFolderDialogProps) {
                     New Folder
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-106.25">
+            <DialogContent className="sm:max-w-md">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
                         <DialogTitle>Create Folder</DialogTitle>

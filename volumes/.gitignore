@@ -1,0 +1,4 @@
+
+# Ignore container data
+data/
+storage/

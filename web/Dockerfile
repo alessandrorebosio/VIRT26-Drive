@@ -8,11 +8,11 @@ RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Stage 2: Development environment
+# Stage 2: Development environment (Optional, prefer host execution for dev)
 FROM base AS dev
 ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
-# Source code is mounted via docker-compose.dev.yml volumes
+# Source code can be mounted via volumes if running in a container
 EXPOSE 3000
 CMD ["npm", "run", "dev"]
 

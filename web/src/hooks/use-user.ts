@@ -40,7 +40,7 @@ export function useUser() {
                     .from("profiles")
                     .select("username, role")
                     .eq("id", authUser.id)
-                    .single()
+                    .maybeSingle()
                 
                 if (!profileError) {
                     setProfile(profileData)

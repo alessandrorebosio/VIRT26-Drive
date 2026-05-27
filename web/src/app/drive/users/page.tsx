@@ -39,8 +39,9 @@ export default function UsersPage() {
     }, [])
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         fetchUsers()
-    }, [fetchUsers])
+    }, [])
 
     const handleDeleteClick = (user: UserData) => {
         setUserToDelete(user)

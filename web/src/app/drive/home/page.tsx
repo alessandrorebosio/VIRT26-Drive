@@ -7,6 +7,7 @@ import { getColumns } from "./columns"
 import { cn } from "@/lib/utils"
 import { Upload, ChevronRight, Home } from "lucide-react"
 import { CreateFolderDialog } from "./_components/create-folder-dialog"
+import { UploadButton } from "./_components/upload-button"
 import { toast } from "sonner"
 
 export default function HomePage() {
@@ -32,26 +33,64 @@ export default function HomePage() {
         }
     }
 
-    const uploadEntry = useCallback(async (entry: any, parentId: string | null) => {
-        if (entry.isFile) {
-            return new Promise<void>((resolve) => {
-                entry.file(async (file: File) => {
-                    await uploadFile(file, parentId, true)
-                    resolve()
-                })
+    const handleManualUpload = async (fileList: FileList) => {
+        const uploadPromises = Array.from(fileList).map(file =>
+            uploadFile(file, currentFolderId, true)
+        )
+
+        if (uploadPromises.length > 0) {
+            toast.promise(Promise.all(uploadPromises), {
+                loading: 'Uploading files...',
+                success: () => {
+                    fetchFiles(currentFolderId)
+                    return 'All files uploaded successfully'
+                },
+                error: 'Failed to upload some files',
             })
-        } else if (entry.isDirectory) {
-            const folder = await createFolder(entry.name, parentId, true)
-            if (folder) {
-                const dirReader = entry.createReader()
-                const entries = await new Promise<any[]>((resolve) => {
-                    dirReader.readEntries((entries: any[]) => resolve(entries))
+        }
+    }
+
+    const uploadEntry = useCallback(async (entry: FileSystemEntry, parentId: string | null) => {
+        const process = async (e: FileSystemEntry, pId: string | null) => {
+            if (e.isFile) {
+                const fileEntry = e as FileSystemFileEntry
+                return new Promise<void>((resolve, reject) => {
+                    fileEntry.file(async (file: File) => {
+                        try {
+                            await uploadFile(file, pId, true)
+                            resolve()
+                        } catch (err) {
+                            reject(err)
+                        }
+                    }, reject)
                 })
-                for (const childEntry of entries) {
-                    await uploadEntry(childEntry, folder.id)
+            } else if (e.isDirectory) {
+                const dirEntry = e as FileSystemDirectoryEntry
+                const folder = await createFolder(dirEntry.name, pId, true)
+                if (folder) {
+                    const dirReader = dirEntry.createReader()
+                    const readAllEntries = async () => {
+                        const allEntries: FileSystemEntry[] = []
+                        let results = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+                            dirReader.readEntries((entries: FileSystemEntry[]) => resolve(entries), reject)
+                        })
+                        while (results.length > 0) {
+                            allEntries.push(...results)
+                            results = await new Promise<FileSystemEntry[]>((resolve, reject) => {
+                                dirReader.readEntries((entries: FileSystemEntry[]) => resolve(entries), reject)
+                            })
+                        }
+                        return allEntries
+                    }
+
+                    const entries = await readAllEntries()
+                    for (const childEntry of entries) {
+                        await process(childEntry, folder.id)
+                    }
                 }
             }
         }
+        await process(entry, parentId)
     }, [uploadFile, createFolder])
 
     const handleDragOver = (e: React.DragEvent) => {
@@ -80,7 +119,7 @@ export default function HomePage() {
                     uploadPromises.push(uploadEntry(item, currentFolderId))
                 }
             }
-            
+
             if (uploadPromises.length > 0) {
                 toast.promise(Promise.all(uploadPromises), {
                     loading: 'Uploading items...',
@@ -112,11 +151,12 @@ export default function HomePage() {
                         Home
                     </h1>
                     <nav className="flex items-center text-sm text-muted-foreground">
-                        <button 
+                        <button
                             onClick={() => handleBreadcrumbClick(-1)}
                             className="flex items-center hover:text-primary transition-colors cursor-pointer"
                         >
                             <Home className="h-4 w-4" />
+                            <span className="pl-2">home</span>
                         </button>
                         {currentPath.map((folder, index) => (
                             <div key={folder.id} className="flex items-center">
@@ -134,7 +174,10 @@ export default function HomePage() {
                         ))}
                     </nav>
                 </div>
-                <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => {})} />
+                <div className="flex items-center gap-2">
+                    <UploadButton onUpload={handleManualUpload} />
+                    <CreateFolderDialog onCreate={(name) => createFolder(name, currentFolderId).then(() => { })} />
+                </div>
             </div>
 
             {isDragging && (
