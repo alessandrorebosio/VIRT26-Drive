@@ -71,104 +71,128 @@ applicazioni distribuite.
 \label{cap:obiettivi}
 
 \section{Requisiti Funzionali}
-Il progetto è stato concepito per offrire un servizio di cloud
-storage completo e versatile. Di seguito vengono dettagliate le
-funzionalità principali del sistema:
+Il sistema è concepito per offrire un servizio di archiviazione e gestione file
+in cloud completo, sicuro e versatile. Di seguito vengono dettagliate le
+funzionalità principali che la piattaforma deve garantire:
 
 \begin{itemize}
-  \item \textbf{Autenticazione e Gestione Utenti:} Sistema di
-    registrazione e autenticazione robusto, gestito tramite i servizi
-    di Supabase Auth, comprensivo di supporto per il recupero e il
-    ripristino delle password.
-  \item \textbf{Gestione dei File (Upload e Download):} Possibilità
-    per gli utenti autorizzati di caricare file e intere directory
-    (anche tramite interazione drag-and-drop) e di scaricare i propri
-    contenuti in modo sicuro attraverso URL temporanei presignati.
-  \item \textbf{Organizzazione e Navigazione:} Struttura gerarchica
-    dei dati che permette la creazione di cartelle e sottocartelle,
-    navigabili in modo intuitivo attraverso l'uso di breadcrumbs.
-  \item \textbf{Meccanismo di Eliminazione (Cestino):}
-    Implementazione di un sistema di \textit{soft-delete} che sposta
-    i file eliminati in un'apposita sezione ``Cestino'',
-    consentendone il recupero prima dell'eliminazione definitiva.
-  \item \textbf{Gestione dei Ruoli e Permessi:} Gestione
-    differenziata degli accessi tra utenti standard (responsabili
-    unicamente del proprio spazio di archiviazione) e amministratori
-    (abilitati a invitare nuovi utenti o a revocarne l'accesso).
+  \item \textbf{Autenticazione tramite Terze Parti (OAuth):} Il sistema deve
+    consentire l'accesso tramite fornitori di identità esterni (es. GitHub).
+    Tale modalità deve essere vincolata alla corrispondenza con un'indirizzo
+    email già censito nel sistema, consentendo il collegamento sicuro
+    dell'account
+    ed evitando la creazione di profili duplicati.
+  \item \textbf{Gestione dei File (Caricamento e Scaricamento):} Gli utenti
+    autorizzati devono poter caricare file e intere cartelle all'interno del
+    proprio spazio, anche tramite interazione diretta di trascinamento
+    (\textit{drag-and-drop}). Devono inoltre poter scaricare i propri
+    contenuti in modo sicuro.
+  \item \textbf{Organizzazione e Navigazione dei Contenuti:} La piattaforma
+    deve supportare una struttura dati gerarchica, consentendo agli utenti di
+    creare cartelle e sottocartelle. La navigazione all'interno dell'albero
+    delle directory deve essere facilitata da indicatori di percorso chiari
+    (\textit{breadcrumbs}).
+  \item \textbf{Meccanismo di Eliminazione (Cestino):} Il sistema deve
+    prevedere una rimozione temporanea dei file, i quali verranno spostati in
+    un'apposita sezione ``Cestino''. Da questa area l'utente potrà scegliere
+    se ripristinare i contenuti nella posizione originale o eliminarli
+    definitivamente.
+  \item \textbf{Gestione dei Ruoli e Permessi di Accesso:} Deve essere
+    garantito un controllo degli accessi basato su profili differenziati:
+    \begin{itemize}
+      \item \textit{Utente Standard:} Abilitato a visualizzare e gestire
+        esclusivamente il proprio spazio di archiviazione privato.
+      \item \textit{Amministratore:} Dotato di privilegi elevati per la
+        gestione del sistema, inclusa la possibilità di invitare nuovi utenti.
+    \end{itemize}
 \end{itemize}
 
 \section{Requisiti Non Funzionali}
-Per garantire l'affidabilità e le prestazioni del sistema, sono stati
-definiti rigorosi requisiti non funzionali che guidano l'architettura
-dell'applicazione:
+Per garantire l'affidabilità, la qualità e la sostenibilità nel tempo del
+sistema, sono stati definiti i seguenti requisiti non funzionali che ne
+guidano la progettazione:
 
 \begin{itemize}
-  \item \textbf{Sicurezza:} Gestione sicura delle sessioni utente e
-    controllo d'accesso ai dati regolato dalle policy di Row Level
-    Security (RLS) di PostgreSQL, che garantiscono l'isolamento delle
-    risorse per ciascun utente.
-  \item \textbf{Scalabilità e Deployment:} Architettura interamente
-    strutturata in un ecosistema a container basato su Docker, utile
-    a gestire in modo flessibile il deployment in base all'ambiente
-    di esecuzione.
-  \item \textbf{Affidabilità e Persistenza dei Dati:} Utilizzo di un
-    database relazionale robusto per la consistenza dei metadati e di
-    un'architettura di object storage resiliente per la conservazione
-    dei file binari.
-  \item \textbf{Usabilità e Interfaccia Utente:} Interfaccia grafica
-    sviluppata con React e Tailwind CSS, completamente responsive per
-    garantire un'esperienza d'uso ottimale su qualsiasi tipo di dispositivo.
-  \item \textbf{Manutenibilità e Qualità del Codice:} Codice sorgente
-    modulare e fortemente tipizzato grazie all'uso di TypeScript,
-    finalizzato a facilitare l'estendibilità e il debugging del sistema.
+  \item \textbf{Sicurezza e Isolamento dei Dati:} Il sistema deve garantire
+    la gestione sicura delle sessioni utente e l'assoluto isolamento dei dati.
+  \item \textbf{Scalabilità e Portabilità:} L'architettura dell'applicazione
+    deve essere facilmente scalabile per supportare l'aumento del carico di
+    lavoro e degli utenti concorrenti. Deve inoltre essere facilmente
+    replicabile e distribuibile in diversi ambienti di esecuzione.
+  \item \textbf{Affidabilità e Persistenza:} Il sistema deve
+    garantire l'integrità
+    e la consistenza dei metadati, minimizzando il rischio di corruzione delle
+    informazioni.
+  \item \textbf{Usabilità e Accessibilità:} L'interfaccia utente deve essere
+    intuitiva, fluida e reattiva (*responsive*), garantendo un'esperienza d'uso
+    ottimale e uniforme su un'ampia gamma di dispositivi e risoluzioni d'schermo
+    (desktop, tablet e smartphone).
+  \item \textbf{Manutenibilità ed Estendibilità:} Il codice sorgente
+    e la struttura
+    del sistema devono essere modulari, documentati e basati su standard che
+    facilitino il rilevamento degli errori (*debugging*), la
+    manutenzione correttiva
+    e l'aggiunta di nuove funzionalità future senza compromettere la stabilità
+    esistente.
 \end{itemize}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{./img/requirements.png}
+  \includegraphics[width=\textwidth]{./img/requirements.png}
   \caption{Panoramica dei requisiti funzionali e non funzionali del sistema.}
   \label{fig:requirements}
 \end{figure}
 
 \section{Vincoli Tecnologici}
-Le scelte progettuali sono state fortemente indirizzate da specifici
-vincoli tecnologici e obiettivi didattici, primo fra tutti l'adozione
-della containerizzazione. Sul fronte dello stack applicativo, il
-progetto richiede l'utilizzo del framework moderno Next.js per
-gestire in un'unica base di codice sia l'interfaccia grafica React
-sia le logiche di backend. Il sistema si appoggia inoltre alla suite
-Supabase per fornire i servizi di database PostgreSQL, lo storage
-compatibile S3 e il modulo di autenticazione.
+Le scelte progettuali e la definizione dell'architettura del sistema
+sono rigidamente delimitate da specifici vincoli tecnologici e
+obiettivi didattici. Il primo vincolo fondamentale riguarda
+l'adozione della containerizzazione, richiesta per garantire
+l'isolamento dei processi e la totale riproducibilità degli ambienti
+di esecuzione.
 
-Per garantire la massima flessibilità, il progetto prevede la
-gestione di due ambienti distinti attraverso l'isolamento dei
-processi, ma con architetture differenti per assecondare le
-specifiche esigenze della fase del ciclo di vita del software:
+Sul fronte dello stack applicativo, il progetto impone l'utilizzo del
+framework Next.js, con l'obiettivo di centralizzare in un'unica base
+di codice sia lo sviluppo dell'interfaccia utente basata su React.
+Per la gestione dell'infrastruttura e dei servizi di supporto, il
+sistema si appoggia interamente alla piattaforma Supabase, la quale
+fornisce il database relazionale PostgreSQL, il modulo di gestione
+dell'autenticazione degli utenti e il sistema di object storage
+necessario alla persistenza dei file binari.
 
-\subsection{Ambiente di Sviluppo (Dev)}
-L'ambiente di sviluppo locale è progettato per garantire la massima
-reattività e rapidità di iterazione. A differenza dell'ambiente di
-produzione, in questa fase non viene utilizzato Docker per il frontend;
-l'applicazione Next.js viene invece eseguita direttamente sulla macchina
-host tramite il comando \texttt{npm run dev}. Questa scelta permette di
-sfruttare appieno l'hot-reloading e le prestazioni native durante il
-debugging.
+Infine, per garantire la massima flessibilità operativa, il progetto
+prevede la configurazione e la separazione netta di due ambienti
+distinti, dedicati rispettivamente alle fasi di sviluppo e di
+produzione. Ciascun ambiente, pur mantenendo l'isolamento dei
+processi tramite container, adotta un'architettura differente e
+ottimizzata per rispondere alle specifiche esigenze del ciclo di vita
+del software.
 
-In questo contesto, il flusso di lavoro è supportato dall'utilizzo
-della \textit{Supabase CLI} (sviluppata in Node.js), la quale
-semplifica la gestione dell'infrastruttura di backend avviando e
-coordinando automaticamente l'intero ecosistema di container Docker
-richiesti da Supabase (come il database PostgreSQL, l'autenticazione
-e lo storage). Ciò permette di replicare fedelmente i servizi cloud
-direttamente sulla macchina locale di sviluppo.
+\subsection{Ambiente di Sviluppo}
+L'ambiente di sviluppo locale è progettato per massimizzare la
+rapidità di iterazione, l'efficienza nel debugging e la fedeltà
+rispetto ai servizi di produzione.
 
-\subsection{Ambiente di Produzione (Prd)} % TODO
-L'ambiente di produzione è definito nel file
-\texttt{docker-compose.yml}. Questa architettura impone criteri
-rigorosi di sicurezza e stabilità; in particolare, prevede l'utilizzo
-di Nginx configurato come reverse proxy, il cui compito è instradare
-in sicurezza le richieste HTTP in ingresso isolando i servizi interni
-dalla rete pubblica.
+Per l'infrastruttura di backend e i servizi di supporto, il flusso di
+lavoro si affida alla \textbf{Supabase CLI}. Questo strumento
+permette di configurare in modo interamente automatico l'intero stack
+tecnologico locale, avviando e coordinando l'ecosistema di container
+Docker necessari a replicare fedelmente le funzionalità cloud.
+
+\subsection{Ambiente di Produzione}
+L'ambiente di produzione è progettato per rispondere a rigorosi
+criteri di sicurezza, isolamento delle risorse e stabilità
+architetturale. A differenza dello scenario di sviluppo, in questo
+contesto sia l'applicazione Next.js sia l'intero backend vengono
+eseguiti all'interno di container isolati e interconnessi, azzerando
+le dipendenze dall'ambiente host.
+
+Il backend della piattaforma è strutturato riproducendo localmente
+l'architettura cloud di \textbf{Supabase} attraverso una suite di
+microservizi containerizzati e coordinati. Questo approccio
+garantisce il pieno controllo sui dati e sulle risorse, eliminando i
+vincoli di lock-in e mantenendo una perfetta coerenza operativa con
+le logiche di deployment centralizzate.
 
 % CHAPTER 2
 \chapter{Architettura del Sistema}
@@ -176,27 +200,69 @@ dalla rete pubblica.
 
 \section{Architettura a Container e Ambienti Operativi}
 L'architettura del sistema fa perno sulla containerizzazione per
-garantire portabilità e flessibilità, adottando due configurazioni
-distinte per gli ambienti di sviluppo e di produzione. Nell'ambiente
-di sviluppo, l'attenzione è posta sulla rapidità di iterazione e
-sull'ottimizzazione del flusso di lavoro. In questa modalità, il
-frontend Next.js viene eseguito nativamente sulla macchina host per
-garantire un \textit{hot-reloading} istantaneo, mentre l'intera
-infrastruttura di backend e database viene demandata all'esecuzione
-locale della Supabase CLI, che emula l'ecosistema cloud direttamente
-sulla macchina dello sviluppatore senza appesantire la configurazione
-Docker principale del progetto.
+garantire portabilità, isolamento e flessibilità, adottando due
+configurazioni distinte e ottimizzate per gli ambienti di sviluppo e
+di produzione.
 
-L'ambiente di produzione, governato dal file
-\texttt{docker-compose.yml}, implementa invece un'architettura
-self-hosted autonoma e completa. In questo scenario, l'infrastruttura
-si espande includendo non solo il container \texttt{nginx-proxy} come
-punto di ingresso per instradare le richieste alla \texttt{web-app},
-ma ospita direttamente tutti i servizi core della suite Supabase.
-Vengono istanziati container dedicati per il database PostgreSQL, per
-le API REST fornite da PostgREST, per la gestione dei file binari
-tramite lo Storage e per il modulo Auth, realizzando un ecosistema
-completamente indipendente e isolato all'interno della rete Docker.
+\subsection{Ambiente di Sviluppo}
+Nell'ambiente di sviluppo locale, l'attenzione è posta sulla
+massimizzazione della rapidità di iterazione, sull'efficienza nel
+debugging e sulla fedeltà rispetto ai servizi di produzione. Per
+garantire la massima flessibilità al flusso di lavoro, l'architettura
+offre una doppia modalità di esecuzione per l'applicazione frontend
+Next.js, consentendo allo sviluppatore di scegliere l'approccio più
+idoneo alle proprie esigenze.
+
+Una prima opzione prevede l'esecuzione nativa dell'applicazione
+direttamente sulla macchina host, facendola interagire con i servizi
+di backend tramite il meccanismo di inoltro delle porte. Questa
+modalità riduce al minimo l'overhead computazionale e garantisce un
+\textit{hot-reloading} estremamente reattivo. In alternativa, è
+possibile optare per l'esecuzione containerizzata: sfruttando una
+specifica configurazione di orchestrazione basata su \textbf{Docker
+Compose}, l'applicazione viene isolata all'interno di un container
+dedicato. Grazie alla mappatura dei volumi della macchina host — con
+l'esclusione strategica delle directory destinate alle dipendenze e
+ai file di build — viene preservato il meccanismo di
+\textit{hot-reloading}, riflettendo istantaneamente le modifiche al
+codice sorgente anche dentro l'ambiente isolato.
+
+Per quanto riguarda l'infrastruttura di backend e i servizi di
+supporto, il flusso di lavoro si affida alla \textbf{Supabase CLI}.
+Questo strumento permette di configurare in modo interamente
+automatico l'intero stack tecnologico locale, avviando e coordinando
+l'ecosistema di container Docker necessari a replicare fedelmente le
+funzionalità cloud direttamente sulla macchina dello sviluppatore,
+senza appesantire la configurazione principale del progetto.
+
+\subsection{Ambiente di Produzione}
+L'ambiente di produzione risponde a rigorosi criteri di sicurezza,
+isolamento delle risorse e stabilità architetturale. A differenza
+dello scenario di sviluppo, in questo contesto sia l'applicazione
+Next.js sia l'intero backend vengono eseguiti tassativamente
+all'interno di container isolati e interconnessi, azzerando qualsiasi
+dipendenza dall'ambiente host.
+
+In questo scenario \textit{self-hosted}, l'infrastruttura si espande
+per garantire l'autonomia della piattaforma attraverso una rete
+virtuale interna ed ermetica. Il container \texttt{nginx-proxy} funge
+da \textit{Reverse Proxy} e unico punto di ingresso della rete,
+instradando il traffico verso la \texttt{web-app} e gestendo la
+terminazione SSL per la sicurezza delle comunicazioni. All'interno
+della medesima rete virtuale Docker vengono orchestrati tutti i
+servizi core della suite backend. La persistenza dei dati e
+l'esecuzione della logica relazionale sono affidate a un'istanza
+dedicata di \textbf{PostgreSQL}, mentre l'esposizione automatica di
+API REST sicure e performanti avviene direttamente dal livello
+database grazie a \textbf{PostgREST}. La gestione, l'archiviazione e
+il recupero dei file binari e dei media sono invece demandati al
+modulo di \textbf{Storage}, mentre il microservizio \textbf{Auth} si
+occupa del controllo degli accessi, della gestione delle sessioni
+utente e del rilascio dei token JWT.
+
+L'intero ecosistema di produzione risulta così completamente
+indipendente, isolato e scalabile, eliminando i vincoli di vendor
+lock-in e garantendo il pieno controllo sovrano sui dati e sull'infrastruttura.
 
 \section{Componenti e Servizi del Sistema}
 \label{sec:componenti_sistema}
@@ -208,89 +274,107 @@ singoli container utilizzati e il loro ruolo all'interno del sistema:
 \begin{itemize}
   \item \textbf{Nginx (\texttt{nginx-proxy}):} Agisce come unico
     punto di ingresso pubblico dell'infrastruttura. Configurato come
-    reverse proxy, accetta le richieste HTTP esterne, gestisce la
-    sicurezza di rete nascondendo l'infrastruttura interna, inserisce
-    gli header di tracciamento (come l'IP reale del client) e smista
-    il traffico in modo efficiente verso il frontend o verso i servizi API.
+    reverse proxy, accetta le richieste HTTP esterne sulla porta
+    configurata, gestisce la sicurezza di rete nascondendo
+    l'infrastruttura interna e smista il traffico in modo efficiente
+    verso il frontend dell'applicazione (\texttt{web}) o verso l'API
+    Gateway (\texttt{kong}).
 
   \item \textbf{Web App (\texttt{web-app}):} Ospita l'applicazione
-    full-stack sviluppata in Next.js. Gestisce sia l'interfaccia
-    utente responsive (eseguita lato client) sia le logiche di
-    backend lato server (Server Actions e API Routes),
-    interfacciandosi direttamente con lo stack Supabase per il
-    recupero dei dati.
+    full-stack sviluppata in Next.js, costruita tramite un
+    \texttt{Dockerfile} dedicato. Gestisce sia l'interfaccia utente
+    responsive (eseguita lato client) sia le logiche di backend lato
+    server (Server Actions e API Routes). Non espone porte
+    direttamente all'esterno, ma comunica internamente ed è
+    accessibile esclusivamente tramite il proxy Nginx.
 
   \item \textbf{Kong (\texttt{supabase-kong}):} Funge da API Gateway
     per lo stack auto-ospitato di Supabase. Intercetta tutte le
-    richieste dirette ai servizi di backend, gestisce la validazione
-    iniziale dei token JWT e instrada il traffico verso lo specifico
-    microservizio richiesto (Auth, PostgREST o Storage).
+    richieste dirette ai servizi di backend tramite una
+    configurazione di tipo declarative, gestisce la validazione
+    iniziale dei token JWT e applica plugin globali (come CORS e
+    \texttt{request-transformer}) prima di instradare il traffico
+    verso lo specifico microservizio richiesto.
 
   \item \textbf{GoTrue (\texttt{supabase-auth}):} È il microservizio
     scritto in Go dedicato alla gestione delle identità e
-    dell'autenticazione stateless. Si occupa dei flussi di
-    registrazione, login, rinnovo dei token e hashing sicuro delle
-    password (tramite bcrypt), interfacciandosi con lo schema isolato
-    del database.
+    dell'autenticazione stateless. Configurato in modalità sicura con
+    registrazione autonoma disabilitata, gestisce i flussi di login,
+    emissione e rinnovo dei token JWT, e l'integrazione con provider
+    terzi (GitHub), interfacciandosi con il servizio SMTP per l'invio
+    delle email transazionali.
 
   \item \textbf{PostgREST (\texttt{supabase-rest}):} Fornisce un
     livello di astrazione sopra il database, trasformando
     automaticamente lo schema relazionale di PostgreSQL in un'API
     RESTful pronta all'uso. Permette alla web-app di eseguire
-    operazioni sui dati tramite semplici chiamate HTTP, riducendo la
-    necessità di scrivere query SQL manuali.
+    operazioni sui dati tramite semplici chiamate HTTP autenticate,
+    riducendo la necessità di scrivere query SQL manuali.
 
   \item \textbf{Storage (\texttt{supabase-storage}):} Gestisce la
-    logic di business legata ai file binari e all'Object Storage
-    compatibile con lo standard S3. Si occupa di ricevere i flussi di
-    dati durante l'upload, verificare i permessi di accesso e
-    generare gli URL firmati temporanei per il download sicuro.
+    logica di business legata ai file binari e all'Object Storage.
+    Nel deployment attuale è configurato per utilizzare il file
+    system locale con persistenza su volume, occupandosi di ricevere
+    i flussi di dati durante l'upload, verificare i permessi di
+    accesso e validare i limiti di dimensione dei file.
 
   \item \textbf{PostgreSQL (\texttt{supabase-db}):} Rappresenta il
-    cuore della persistenza dei dati del sistema. Oltre a memorizzare
-    i metadati relazionali (utenti, cartelle, riferimenti ai file),
-    implementa attivamente le logiche di sicurezza tramite le policy
-    di Row Level Security (RLS) per isolare rigidamente i dati di
-    ciascun utente.
+    cuore della persistenza dei dati del sistema. In fase di avvio
+    esegue script di inizializzazione fondamentali per configurare i
+    ruoli di sicurezza e la struttura del database. I dati operativi
+    e le configurazioni critiche sono salvati permanentemente tramite
+    i volumi Docker dedicati \texttt{db-data} e \texttt{db-config}.
 
-  \item \textbf{Mailpit (\texttt{mailpit}):} Utilizzato all'interno
-    dell'ambiente di sviluppo come server SMTP locale. Intercetta
-    tutte le email transazionali generate da GoTrue (come i messaggi
-    di conferma registrazione o di reset password), consentendo di
-    testare i flussi di notifica in totale sicurezza attraverso
-    un'interfaccia web dedicata senza inviare messaggi reali.
+  \item \textbf{Mailpit (\texttt{mailpit}):} Utilizzato
+    esclusivamente all'interno dell'ambiente di sviluppo locale come
+    server SMTP fittizio. Intercetta tutte le email transazionali
+    generate da GoTrue (come i messaggi di invito o di recupero
+    credenziali), consentendo di testare i flussi di notifica in
+    totale sicurezza attraverso un'interfaccia web dedicata senza
+    inviare messaggi reali.
 \end{itemize}
 
 \section{Comunicazione tra Container}
 La comunicazione all'interno del sistema avviene sfruttando la rete
 virtuale privata gestita dinamicamente da Docker. Nell'ambiente di
 produzione, questo isolamento è fondamentale poiché solo il proxy
-Nginx espone la porta HTTP (80) verso l'esterno, mentre tutti gli
-altri container dialogano esclusivamente tramite hostname interni. Il
-flusso delle comunicazioni inizia quando il browser dell'utente
-finale invia una richiesta HTTP all'indirizzo pubblico. Nginx
-intercetta la richiesta, vi inietta gli header informativi, come
-l'indirizzo IP reale del client, e la inoltra alla web-app Next.js. A
-sua volta, l'applicazione Next.js si interfaccia con i servizi
-backend. In produzione, queste richieste vengono indirizzate verso i
-container auto-ospitati: le interrogazioni relazionali passano
-attraverso PostgREST per accedere a PostgreSQL, i caricamenti dei
-file vengono gestiti dal container Storage e le validazioni dei token
-dal servizio Auth, il tutto senza che alcun dato transiti sulla rete
-dell'host fisico o su internet.
+Nginx espone la porta HTTP verso l'esterno, fungendo da punto di
+ingresso unico. Il flusso delle comunicazioni inizia quando il
+browser dell'utente finale invia una richiesta HTTP; Nginx la
+intercetta, vi inietta gli header informativi (come l'indirizzo IP
+reale del client) e la smista: le richieste di navigazione vengono
+inoltrate alla web-app (Next.js), mentre le chiamate API dirette al
+backend vengono indirizzate verso l'API Gateway Kong. Kong funge da
+orchestratore e punto di accesso centralizzato per i servizi di
+Supabase: riceve le richieste della web-app, ne verifica i token e le
+chiavi di sicurezza, e si occupa di instradarle internamente verso i
+rispettivi container (GoTrue per l'autenticazione, PostgREST per le
+interrogazioni relazionali e Storage-API per la gestione dei file).
+Infine, questi microservizi dialogano in modo sicuro e isolato con il
+database PostgreSQL, garantendo che alcun dato sensibile transiti
+scoperto sulla rete dell'host fisico o su Internet.
 
 \section{Infrastruttura e Networking in Produzione}
-L'inserimento di Nginx nel ruolo di reverse proxy nell'ambiente di
-produzione riveste un'importance strategica. Nginx opera come una
-barriera protettiva che disaccoppia la rete pubblica dalla rete
-privata in cui operano i container. Oltre a garantire la sicurezza
-nascondendo le reali porte e gli indirizzi dei server di backend, il
-proxy gestisce in modo altamente efficiente i buffer per le risposte
-e l'aggiornamento dei protocolli per i WebSocket. Questa netta
-separazione delle responsabilità mitiga il rischio di esposizione
-diretta dell'ambiente Node.js e dell'infrastruttura Supabase a
-vulnerabilità esterne e predispone il sistema per un'agevole
-scalabilità orizzontale tramite tecniche di load balancing.
+L'inserimento di Nginx nel ruolo di reverse proxy primario
+nell'ambiente di produzione riveste un'importanza strategica
+fondamentale. Nginx opera come un punto di terminazione e una
+barriera protettiva che disaccoppia la rete pubblica internet
+dall'infrastruttura di rete privata (Docker bridge) in cui operano i container.
+
+Oltre a garantire la sicurezza logica, mascherando le porte reali e
+gli indirizzi dei microservizi di backend, questa configurazione
+ottimizza le prestazioni complessive. Nginx gestisce in modo
+efficiente l'aggiornamento dei protocolli per i WebSocket e coadiuva
+l'architettura di API Gateway (basata su Kong) nella gestione
+avanzata dei buffer di memoria per le richieste ad alto carico.
+
+Questa netta separazione delle responsabilità mitiga il rischio di
+esposizione diretta del runtime dell'applicazione Next.js e
+dell'ecosistema eterogeneo di Supabase (composto da servizi in Go,
+Haskell e PostgreSQL) a vulnerabilità esterne. Infine, centralizzando
+i flussi di ingresso su un unico punto d'accesso, il sistema viene
+predisposto per un'agevole scalabilità orizzontale e per l'eventuale
+introduzione di strategie di Load Balancing e offloading SSL/TLS.
 
 \newpage
 \section{Diagramma Architetturale}
@@ -373,22 +457,33 @@ esposta verso l'esterno (l'host fisico) sia quella del proxy Nginx.
 La persistenza dei dati è un aspetto critico in un'architettura
 containerizzata, dove il filesystem interno dei container è per sua
 natura effimero e volatile. Per ovviare a questa limitazione, il
-progetto utilizza i volumi Docker per separare il ciclo di vita dei
-dati da quello dei processi.
+progetto utilizza i volumi nominati di Docker (\textit{named
+volumes}) per separare nativamente il ciclo di vita dei dati da
+quello dei processi.
 
-In particolare, vengono definiti volumi dedicati per il database
-PostgreSQL, assicurando che i metadati degli utenti e le informazioni
-logiche sui file rimangano integri anche in caso di riavvio o
-distruzione dei container. Un approccio simile è adottato per lo
-storage degli oggetti, in cui i file binari caricati dagli utenti
-vengono archiviati in un volume persistente mappato sui bucket di
-Supabase Storage.
+In particolare, per il servizio del database PostgreSQL (\texttt{db})
+vengono definiti due volumi dedicati: \texttt{db-data}, preposto alla
+persistenza fisica delle tabelle, dei metadati e delle informazioni
+logiche del sistema, e \texttt{db-config}. Quest'ultimo riveste un
+ruolo cruciale poiché persiste le configurazioni personalizzate del
+motore relazionale e le chiavi di cifratura delle estensioni di
+sicurezza (come \textit{pgsodium}), garantendo l'accessibilità e
+l'integrità dei dati anche in caso di totale distruzione del container.
 
-Questa gestione permette di effettuare backup semplificati e
-garantisce la consistenza delle informazioni, differenziando
-nettamente lo storage persistente dai file temporanei di sessione o
-dalle cache di build, i quali possono essere eliminati senza
-compromettere in alcun modo l'operatività del servizio cloud.
+Un approccio analogo è adottato per il servizio
+\texttt{supabase-storage} tramite il volume \texttt{storage-data}.
+Poiché lo stack è configurato per utilizzare un backend di
+archiviazione locale, questo volume persiste direttamente i file
+binari caricati dagli utenti all'interno della directory
+\texttt{/var/lib/storage}, organizzandoli nelle strutture logiche dei
+bucket senza dipendere da servizi di cloud storage esterni.
+
+Questa gestione centralizzata permette di effettuare procedure di
+backup semplificate e garantisce la consistenza delle informazioni a
+lungo termine, differenziando nettamente lo storage persistente dai
+file temporanei di sessione o dalle cache di build, i quali possono
+essere rigenerati dinamicamente senza compromettere in alcun modo
+l'operatività del servizio.
 
 \section{Vantaggi della Containerizzazione}
 L'adozione di Docker e di un'architettura a microservizi
