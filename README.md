@@ -48,7 +48,7 @@ The root `.env` file contains critical secrets for Docker Compose. You can gener
 cp example.env .env
 
 # Generate secure random keys and update the .env file
-sh volumes/utils/generate-keys.sh
+sh infra/scripts/generate-keys.sh
 ```
 
 ## 📦 Deployment

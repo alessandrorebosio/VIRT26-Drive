@@ -7,14 +7,22 @@ import { PasswordInput } from "@/components/input/password-input"
 import { useAccount } from "@/hooks/use-account"
 import { useState } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { AlertCircle, User as UserIcon, Shield, Mail } from "lucide-react"
+import { User as UserIcon, Shield, Mail } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 
 export default function AccountPage() {
-    const { user, profile, loading, isUpdatingProfile, isUpdatingPassword, updateProfile, updatePassword, pendingEmail } = useAccount()
+    const { 
+        user, 
+        profile, 
+        loading, 
+        isUpdatingProfile, 
+        isUpdatingPassword, 
+        updateProfile, 
+        updatePassword 
+    } = useAccount()
+
     const [username, setUsername] = useState<string | undefined>(undefined)
-    const [newEmail, setNewEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
 
@@ -22,8 +30,7 @@ export default function AccountPage() {
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        const targetEmail = newEmail || user?.email || ""
-        await updateProfile(currentUsername, targetEmail)
+        await updateProfile(currentUsername)
         window.location.reload()
     }
 
@@ -83,19 +90,9 @@ export default function AccountPage() {
                         </div>
 
                         <form onSubmit={handleProfileSubmit} className="space-y-5">
-                            {pendingEmail && (
-                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3 text-amber-800 text-sm animate-in fade-in slide-in-from-top-2">
-                                    <AlertCircle className="h-5 w-5 shrink-0" />
-                                    <div>
-                                        <p className="font-semibold underline">Confirmation required</p>
-                                        <p className="opacity-90 mt-0.5">Please check <strong>{pendingEmail}</strong> to verify your new email address.</p>
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-2">
-                                    <label htmlFor="username" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                    <label htmlFor="username" className="text-sm font-medium leading-none">
                                         Username
                                     </label>
                                     <Input
@@ -129,28 +126,8 @@ export default function AccountPage() {
                                     className="bg-muted h-10 cursor-default"
                                 />
                                 <p className="text-[10px] text-muted-foreground italic pl-1">
-                                    This is your verified primary email address.
+                                    This is your verified primary email address (cannot be changed).
                                 </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label htmlFor="new-email" className="text-sm font-medium leading-none">
-                                    Change Email
-                                </label>
-                                <Input
-                                    id="new-email"
-                                    type="email"
-                                    placeholder="new-address@example.com"
-                                    value={newEmail}
-                                    onChange={(e) => setNewEmail(e.target.value)}
-                                    disabled={!!pendingEmail}
-                                    className={pendingEmail ? "bg-muted cursor-not-allowed h-10" : "h-10"}
-                                />
-                                {!pendingEmail && (
-                                    <p className="text-[10px] text-muted-foreground italic pl-1">
-                                        Leave empty if you only want to change your username.
-                                    </p>
-                                )}
                             </div>
 
                             <Button type="submit" className="w-full h-10 font-semibold hover:cursor-pointer" disabled={isUpdatingProfile}>
@@ -182,7 +159,7 @@ export default function AccountPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label htmlFor="confirm-password" className="text-sm font-medium leading-none">Confirm</label>
+                                    <label htmlFor="confirm-password" className="text-sm font-medium leading-none">Confirm Password</label>
                                     <PasswordInput
                                         id="confirm-password"
                                         value={confirmPassword}

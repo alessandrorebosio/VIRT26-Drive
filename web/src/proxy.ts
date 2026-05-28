@@ -2,7 +2,7 @@ import { updateSession } from "@/lib/supabase/proxy";
 import { type NextRequest, type NextResponse } from "next/server";
 
 /**
- * Proxies incoming Next.js server requests to update or refresh the Supabase session.
+ * Middleware to update or refresh the Supabase session.
  * This ensures that user authentication states remain synchronized across requests.
  *
  * @param {NextRequest} request - The incoming Next.js server request object.

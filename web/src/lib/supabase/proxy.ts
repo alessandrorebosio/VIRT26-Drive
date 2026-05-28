@@ -22,43 +22,49 @@ export async function updateSession(request: NextRequest) {
 	// variable. Always create a new one on each request.
 	const supabase = createServerClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				/**
-				 * Retrieves all cookies from the current incoming request.
-				 * @returns {Array<{ name: string; value: string }>} An array of request cookies.
-				 */
-				getAll() {
-					return request.cookies.getAll();
-				},
-				/**
-				 * Synchronizes updated session cookies across the request lifecycle and the final response.
-				 * @param {Array<{ name: string; value: string; options: any }>} cookiesToSet - The list of auth cookies to persist.
-				 */
-				setAll(cookiesToSet) {
-					cookiesToSet.forEach(({ name, value }) =>
-						request.cookies.set(name, value),
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+		global: {
+			fetch: (url, options) => {
+				if
+					(process.env.SUPABASE_INTERNAL_URL) {
+					return fetch(
+						url.toString().replace(
+							process.env.NEXT_PUBLIC_SUPABASE_URL!,
+							process.env.SUPABASE_INTERNAL_URL
+						),
+						options,
 					);
-					supabaseResponse = NextResponse.next({
-						request,
-					});
-					cookiesToSet.forEach(({ name, value, options }) =>
-						supabaseResponse.cookies.set(name, value, options),
-					);
-				},
+				} return fetch(url, options);
 			},
 		},
-	);
+		cookies: {
+			/**
+			 * Retrieves all cookies from the current incoming request.
+			 * @returns {Array<{ name: string; value: string }>} An array of request cookies.
+			 */
+			getAll() {
+				return request.cookies.getAll();
+			},
+			/**
+			 * Synchronizes updated session cookies across the request lifecycle and the final response.
+			 * @param {Array<{ name: string; value: string; options: any }>} cookiesToSet - The list of auth cookies to persist.
+			 */
+			setAll(cookiesToSet) {
+				cookiesToSet.forEach(({ name, value }) =>
+					request.cookies.set(name, value),
+				);
+				supabaseResponse = NextResponse.next({
+					request,
+				});
+				cookiesToSet.forEach(({ name, value, options }) =>
+					supabaseResponse.cookies.set(name, value, options),
+				);
+			},
+		},
+	});
 
-	// Do not run code between createServerClient and
-	// supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-	// issues with users being randomly logged out.
-
-	// IMPORTANT: If you remove getClaims() and you use server-side rendering
-	// with the Supabase client, your users may be randomly logged out.
-	const { data } = await supabase.auth.getClaims();
-	const user = data?.claims;
+	const { data } = await supabase.auth.getUser();
+	const user = data?.user;
 	const pathname = request.nextUrl.pathname;
 
 	if (!user) {
@@ -85,6 +91,10 @@ export async function updateSession(request: NextRequest) {
 		}
 	} else {
 		if (pathname === "/" || pathname.startsWith("/auth") || pathname.startsWith("/setup")) {
+			if (pathname === "/auth/reset-password") {
+				return supabaseResponse;
+			}
+
 			return NextResponse.redirect(new URL("/drive", request.url));
 		}
 	}

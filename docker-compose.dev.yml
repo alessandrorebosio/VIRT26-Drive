@@ -7,11 +7,17 @@ services:
       context: ./web
       dockerfile: Dockerfile
       target: dev
+    environment:
+      - SUPABASE_INTERNAL_URL=http://kong:8000
     ports:
       - "3000:3000"
     volumes:
       - ./web:/app
       - /app/node_modules
       - /app/.next
-    extra_hosts:
-      - "localhost:host-gateway"
+    networks:
+      - supabase_network_drive-dev
+
+networks:
+  supabase_network_drive-dev:
+    external: true

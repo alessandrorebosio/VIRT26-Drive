@@ -239,15 +239,19 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 # Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+[auth.email.template.invite]
+subject = "You have been invited to join us!"
+content_path = "./supabase/template/invite.html"
+
+[auth.email.template.recovery]
+subject = "Reset your password"
+content_path = "./supabase/template/recovery.html"
 
 # Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Security alert: your password has been changed"
+content_path = "./template/password_changed.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

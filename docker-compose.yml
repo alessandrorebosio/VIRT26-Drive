@@ -7,7 +7,8 @@ services:
     ports:
       - "${NGINX_PORT}:80"
     volumes:
-      - ./volumes/proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./infra/proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./web/supabase/template:/usr/share/nginx/html/templates:ro
     depends_on:
       web:
         condition: service_started
@@ -20,14 +21,14 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+    environment:
+      - SUPABASE_INTERNAL_URL=http://kong:8000
     # ports:
     #   - "3000:3000"
     restart: unless-stopped
     depends_on:
       kong:
         condition: service_healthy
-    extra_hosts:
-      - "localhost:host-gateway"
 
   kong:
     container_name: supabase-kong
@@ -51,8 +52,8 @@ services:
         condition: service_started
     volumes:
       # https://github.com/supabase/supabase/issues/12661
-      - ./volumes/api/kong.yml:/home/kong/temp.yml:ro,z
-      - ./volumes/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
+      - ./infra/api/kong.yml:/home/kong/temp.yml:ro,z
+      - ./infra/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /usr/local/kong/kong.yml
@@ -81,13 +82,13 @@ services:
 
   db:
     container_name: supabase-db
-    image: supabase/postgres:17.6.1.121
+    image: supabase/postgres:17.6.1.127
     restart: unless-stopped
     volumes:
       # Must be superuser to alter reserved role
-      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./infra/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # Initialize the database settings with JWT_SECRET and JWT_EXP
-      - ./volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      - ./infra/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # Initialize database extensions, schemas, tables and functions
       - ./web/supabase/snippets/schemas.sql:/docker-entrypoint-initdb.d/init-scripts/99-schemas.sql:Z
       # PGDATA directory is persisted between restarts
@@ -136,7 +137,7 @@ services:
 
   auth:
     container_name: supabase-auth
-    image: supabase/gotrue:v2.188.1
+    image: supabase/gotrue:v2.189.0
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health" ]
@@ -187,6 +188,9 @@ services:
       GOTRUE_SMTP_PASS: ${SMTP_PASS}
       GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
 
+      GOTRUE_MAILER_TEMPLATES_INVITE: http://nginx/templates/invite.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://nginx/templates/recovery.html
+
       GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_RECOVERY: /auth/v1/verify
@@ -202,7 +206,7 @@ services:
 
   storage:
     container_name: supabase-storage
-    image: supabase/storage-api:v1.54.1
+    image: supabase/storage-api:v1.58.17
     restart: unless-stopped
     depends_on:
       db:

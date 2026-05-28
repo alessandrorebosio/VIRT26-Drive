@@ -7,17 +7,17 @@ import { toast } from "sonner"
 
 /**
  * Custom React hook to manage user account operations, such as 
- * updating profile information, handling email change flows, and updating passwords.
- * * @returns {Object} An object containing account state and mutation functions.
+ * updating profile information and updating passwords.
+ * 
+ * @returns {Object} An object containing account state and mutation functions.
  * @returns {User | null} return.user - The currently authenticated user object from `useUser`.
  * @returns {{ username: string | null; role: string } | null} return.profile - The user's profile data from `useUser`.
  * @returns {boolean} return.loading - Loading state indicating if the initial user data is being fetched.
  * @returns {boolean} return.isUpdatingProfile - Form submission state indicating if a profile update operation is in progress.
  * @returns {boolean} return.isUpdatingPassword - Form submission state indicating if a password update operation is in progress.
- * @returns {(newUsername: string, newEmail: string) => Promise<void>} return.updateProfile - Function to update username and/or email address.
+ * @returns {(newUsername: string) => Promise<void>} return.updateProfile - Function to update the username.
  * @returns {(password: string) => Promise<void>} return.updatePassword - Function to securely update the user's password.
  * @returns {() => Promise<void>} return.refresh - Function to manually re-authenticate and refresh the user session.
- * @returns {string | undefined} return.pendingEmail - The new email address awaiting confirmation, if a change is pending.
  */
 export function useAccount() {
     const { user, profile, loading } = useUser()
@@ -27,9 +27,6 @@ export function useAccount() {
 
     /**
      * Refreshes the current Supabase authentication session and user profile.
-     * * @async
-     * @function refresh
-     * @returns {Promise<void>}
      */
     const refresh = useCallback(async () => {
         try {
@@ -40,28 +37,15 @@ export function useAccount() {
     }, [supabase])
 
     /**
-     * Updates the user's profile data in the database and handles email updates via Supabase Auth.
-     * If the email has changed, a confirmation link will be sent to the new email address.
-     * * @async
-     * @function updateProfile
+     * Updates the user's profile data (username) in the database.
+     * 
      * @param {string} newUsername - The new username to set for the profile.
-     * @param {string} newEmail - The new email address to update in authentication.
-     * @throws {Error} Throws an error if either the auth update or profile update fails.
-     * @returns {Promise<void>}
      */
-    const updateProfile = async (newUsername: string, newEmail: string) => {
+    const updateProfile = async (newUsername: string) => {
         if (!user) return
 
         setIsUpdatingProfile(true)
         try {
-            if (newEmail !== user.email) {
-                const { error: authError } = await supabase.auth.updateUser({ email: newEmail }, {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`
-                })
-                if (authError) throw authError
-                toast.info("A confirmation email has been sent to your new email address.")
-            }
-
             const { error: profileError } = await supabase
                 .from("profiles")
                 .upsert({
@@ -85,11 +69,8 @@ export function useAccount() {
 
     /**
      * Updates the authenticated user's password using Supabase Auth.
-     * * @async
-     * @function updatePassword
-     * @param {string} password - The new password string (minimum required length depends on Supabase config, typically 6+ characters).
-     * @throws {Error} Throws an error if the password update operation fails on the server.
-     * @returns {Promise<void>}
+     * 
+     * @param {string} password - The new password string.
      */
     const updatePassword = async (password: string) => {
         setIsUpdatingPassword(true)
@@ -115,7 +96,6 @@ export function useAccount() {
         isUpdatingPassword,
         updateProfile,
         updatePassword,
-        refresh,
-        pendingEmail: user?.new_email
+        refresh
     }
 }
