@@ -26,20 +26,25 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') as EmailOtpType | null
     const next = searchParams.get('next') ?? '/'
 
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || 'localhost:3000'
+    const proto = request.headers.get('x-forwarded-proto') || 'https'
+
+    const publicOrigin = `${proto}://${host}`
+
     const supabase = await createClient()
     if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
         if (error) {
             const errorParam = encodeURIComponent(error.message)
-            return NextResponse.redirect(new URL(`/auth/sign-in?error=${errorParam}`, request.url))
+            return NextResponse.redirect(new URL(`/auth/sign-in?error=${errorParam}`, publicOrigin))
         }
     } else if (token_hash && type) {
         const { error } = await supabase.auth.verifyOtp({ type, token_hash })
         if (error) {
             const errorParam = encodeURIComponent(error.message)
-            return NextResponse.redirect(new URL(`/auth/sign-in?error=${errorParam}`, request.url))
+            return NextResponse.redirect(new URL(`/auth/sign-in?error=${errorParam}`, publicOrigin))
         }
     }
 
-    return NextResponse.redirect(new URL(next, request.url))
+    return NextResponse.redirect(new URL(next, publicOrigin))
 }

@@ -83,6 +83,7 @@ export async function inviteUserAction(email: string, role: string, origin: stri
 
         const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
             data: { role },
+            redirectTo: origin
         });
 
         if (error) throw error;

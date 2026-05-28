@@ -8,6 +8,7 @@ services:
       - "${NGINX_PORT}:80"
     volumes:
       - ./infra/proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./web/supabase/template:/usr/share/nginx/html/templates:ro
     depends_on:
       web:
         condition: service_started
@@ -186,6 +187,9 @@ services:
       GOTRUE_SMTP_USER: ${SMTP_USER}
       GOTRUE_SMTP_PASS: ${SMTP_PASS}
       GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+
+      GOTRUE_MAILER_TEMPLATES_INVITE: http://nginx/templates/invite.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://nginx/templates/recovery.html
 
       GOTRUE_MAILER_URLPATHS_INVITE: /auth/v1/verify
       GOTRUE_MAILER_URLPATHS_CONFIRMATION: /auth/v1/verify
