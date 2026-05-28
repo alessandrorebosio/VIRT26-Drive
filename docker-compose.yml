@@ -20,6 +20,8 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+    environment:
+      - SUPABASE_INTERNAL_URL=http://kong:8000
     # ports:
     #   - "3000:3000"
     restart: unless-stopped

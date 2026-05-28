@@ -7,6 +7,8 @@ services:
       context: ./web
       dockerfile: Dockerfile
       target: dev
+    environment:
+      - SUPABASE_INTERNAL_URL=http://kong:8000
     ports:
       - "3000:3000"
     volumes:
