@@ -77,15 +77,12 @@ export async function getUsersAction(): Promise<ActionResponse<UserData[]>> {
  * @param {string} role - The initial application role to assign to the invited user.
  * @returns {Promise<ActionResponse<unknown>>} A promise that resolves to a success status with invitation data, or an error payload.
  */
-export async function inviteUserAction(email: string, role: string): Promise<ActionResponse<unknown>> {
+export async function inviteUserAction(email: string, role: string, origin: string): Promise<ActionResponse<unknown>> {
     try {
         const supabaseAdmin = createAdminClient();
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost';
-
         const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
             data: { role },
-            redirectTo: `${siteUrl}/auth/reset-password`,
         });
 
         if (error) throw error;

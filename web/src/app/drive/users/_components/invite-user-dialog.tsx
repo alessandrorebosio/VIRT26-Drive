@@ -32,15 +32,15 @@ export function InviteUserDialog({ onSuccess }: InviteUserDialogProps) {
         e.preventDefault()
         setInviting(true)
         try {
-            const result = await inviteUserAction(email, role)
+            const result = await inviteUserAction(email, role, window.location.origin)
             if (result.success) {
-                toast.success("Invito inviato con successo!")
+                toast.success("Invitation sent successfully!")
                 setOpen(false)
                 setEmail("")
                 setRole("user")
                 onSuccess?.()
             } else {
-                toast.error(result.error || "Errore durante l'invio dell'invito")
+                toast.error(result.error || "Error sending invitation")
             }
         } catch (error) {
             console.error(error)

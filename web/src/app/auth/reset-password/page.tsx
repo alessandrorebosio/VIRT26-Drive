@@ -1,12 +1,13 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PasswordInput } from "@/components/input/password-input"
-import { useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState("")
@@ -20,17 +21,18 @@ export default function ResetPasswordPage() {
             return toast.error("Passwords do not match")
         }
         setLoading(true)
+
         const supabase = createClient()
         const { error } = await supabase.auth.updateUser({
             password: password,
         })
         setLoading(false)
+
         if (error) {
-            toast.error(error.message)
-        } else {
-            toast.success("Password updated successfully")
-            router.push("/auth/sign-in")
+            return toast.error(error.message)
         }
+        router.push("/auth/sign-in")
+        return toast.success("Password updated successfully")
     }
 
     return (

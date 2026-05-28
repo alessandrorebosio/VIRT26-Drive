@@ -1,47 +1,44 @@
-"use client";
+"use client"
 
-import { useEffect } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
-import { toast } from "sonner";
+import { useEffect } from "react"
+import { useSearchParams } from "next/navigation"
+import { toast } from "sonner"
 
 /**
- * Custom React hook that listens for error parameters in both the URL query string 
- * and URL hash fragment. If an error is detected, it displays a toast notification 
- * and automatically cleans up the URL parameters to prevent repeated toasts on refresh.
+ * A custom React hook that automatically detects, displays, and clears error messages from the URL.
+ * 
+ * It checks both URL search parameters (`?error=...`) and hash fragments (`#error=...`) 
+ * for common error keys (`error_description`, `error`, `message`). If an error is found, 
+ * it triggers a toast notification and strips the error keys from the URL to keep it clean 
+ * and prevent the toast from reappearing on page refresh.
+ * 
+ * Perfect for handling authentication redirects (e.g., Supabase, Auth0, OAuth).
  *
+ * @example
+ * // Just call it at the top level of a client component or layout
+ * useErrorToast();
+ * 
  * @returns {void}
  */
-export function useErrorToast(): void {
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
+export function useErrorToast() {
+    const searchParams = useSearchParams()
 
     useEffect(() => {
-        if (typeof window === "undefined") return;
+        const hash = new URLSearchParams(window.location.hash.substring(1))
+        const keys = ["error_description", "error", "message"]
 
-        const hashParams = new URLSearchParams(window.location.hash.slice(1));
-        const errorKeys = ["error_description", "error", "message", "error_code"];
+        const error = keys.map(k => searchParams.get(k) || hash.get(k)).find(Boolean)
+        if (!error) return
 
-        let rawError = "";
-        for (const key of errorKeys) {
-            const val = searchParams.get(key) || hashParams.get(key);
-            if (val) { rawError = val; break; }
-        }
+        toast.error(decodeURIComponent(error.replace(/\+/g, " ")))
 
-        if (!rawError) return;
+        const url = new URL(window.location.href)
+        keys.forEach(k => {
+            url.searchParams.delete(k)
+            hash.delete(k)
+        })
 
-        const message = decodeURIComponent(rawError.replace(/\+/g, " "));
-        toast.error(message);
-
-        const url = new URL(window.location.href);
-        errorKeys.forEach(key => {
-            url.searchParams.delete(key);
-            hashParams.delete(key);
-        });
-
-        const newHash = hashParams.toString();
-        url.hash = newHash ? `#${newHash}` : "";
-
-        window.history.replaceState(null, "", url.pathname + url.search + url.hash);
-        
-    }, [searchParams, pathname]);
+        url.hash = hash.toString()
+        window.history.replaceState(null, "", url.toString())
+    }, [searchParams])
 }
