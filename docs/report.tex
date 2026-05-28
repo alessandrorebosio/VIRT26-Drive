@@ -232,12 +232,33 @@ quali implementa una porzione specifica della logica di business o
 dell'infrastruttura di supporto.
 
 \subsection{Nginx: Il Gateway d'Ingresso}
-Il servizio \texttt{nginx-proxy} utilizza l'immagine \texttt{nginx:alpine} per
-garantire un'impronta ridotta e alte prestazioni. Oltre al routing, Nginx è
-configurato per gestire file statici e per operare come barriera di protezione,
-limitando la dimensione delle richieste (\textit{client\_max\_body\_size}) per
-prevenire attacchi di tipo \textit{Denial of Service} basati sull'invio di file
-eccessivamente pesanti non autorizzati.
+Il servizio \texttt{nginx-proxy} è stato implementato avvalendosi
+dell'immagine \texttt{nginx:alpine}, una scelta progettuale mirata a
+garantire un'impronta di sistema ridotta mantenendo al contempo
+elevate prestazioni. Oltre a gestire le operazioni fondamentali di
+routing del traffico di rete e di terminazione dei certificati SSL,
+il server Nginx è stato configurato per assolvere a ulteriori
+funzioni strategiche all'interno dell'architettura applicativa.
+
+In primo luogo, esso opera come gestore dei contenuti statici,
+occupandosi direttamente di servire i template HTML personalizzati.
+Questi asset vengono impiegati dal servizio di autenticazione per la
+generazione e l'invio delle comunicazioni email transazionali, come
+nel caso degli inviti per i nuovi utenti o delle procedure di
+recupero delle credenziali. Inoltre, il proxy funge da fondamentale
+barriera di protezione per il backend: tramite la regolazione della
+direttiva \texttt{client\_max\_body\_size}, il sistema limita
+rigorosamente la dimensione massima consentita per le richieste HTTP
+in ingresso. Questa configurazione si rivela essenziale per mitigare
+il rischio di attacchi \textit{Denial of Service} (DoS) basati sul
+caricamento non autorizzato di file eccessivamente pesanti volti a
+saturare le risorse. Infine, per garantire la stabilità delle
+comunicazioni, il servizio si occupa dell'ottimizzazione degli header
+di rete tramite il parametro \texttt{proxy\_buffer\_size};
+un'adeguata allocazione dei buffer di risposta permette infatti al
+sistema di supportare senza anomalie le intestazioni di grandi
+dimensioni, una casistica frequente quando si gestiscono risposte
+contenenti token JWT particolarmente complessi.
 
 \subsection{Kong: L'API Gateway dello Stack Supabase}
 Al di sotto del proxy primario opera Kong, un API Gateway \textit{cloud-native}
@@ -292,7 +313,6 @@ illustra l'interazione complessa tra le parti:
     volume persistente e restituisce una conferma dell'operazione al client.
 \end{enumerate}
 
-\newpage
 \section{Diagramma delle Interazioni}
 La Figura~\ref{fig:architecture} descrive visivamente la gerarchia dei servizi.
 È possibile osservare come l'isolamento sia strutturato a livelli: dal client
@@ -488,7 +508,7 @@ primitive di Radix UI, garantendo il rispetto degli standard di accessibilità
 \chapter{Gestione Utenti e Autenticazione}
 \label{cap:autenticazione}
 
-\section{Modello di Autenticazione Stateless: JSON Web Tokens}
+\section{Modello di Autenticazione Stateless}
 La sicurezza degli accessi è garantita da un sistema di autenticazione
 \textit{stateless} basato sullo standard JSON Web Token (JWT). A differenza dei
 sistemi tradizionali basati su sessioni lato server, il JWT permette di
@@ -515,10 +535,17 @@ flessibilità, il sistema supporta un modello di autenticazione
 ibrido, combinando le credenziali tradizionali con i moderni
 protocolli di delega dell'identità.
 
-\subsection{Autenticazione Standard: Email e Password}
+\subsection{Autenticazione Standard}
 Come meccanismo di accesso primario, il sistema adotta
 l'autenticazione standard tramite email e password. GoTrue gestisce
 in modo centralizzato l'intero ciclo di vita delle identità digitali.
+Per garantire un'esperienza utente coerente con il brand della
+piattaforma, il servizio è configurato per utilizzare template HTML
+personalizzati. Questi file sono ospitati dal container Nginx e
+recuperati internamente da GoTrue tramite connessioni HTTP
+point-to-point durante la generazione delle email di sistema (es.
+conferma registrazione, reset password).
+
 Per tutelare la riservatezza dei dati at-rest, le password non sono
 mai archiviate in chiaro (plaintext), ma memorizzate avvalendosi di
 robusti algoritmi di hashing crittografico unidirezionale, come
