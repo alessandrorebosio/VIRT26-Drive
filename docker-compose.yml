@@ -7,7 +7,7 @@ services:
     ports:
       - "${NGINX_PORT}:80"
     volumes:
-      - ./infra/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./infra/proxy/default.conf.template:/etc/nginx/templates/default.conf.template:ro
     depends_on:
       web:
         condition: service_started
@@ -49,8 +49,8 @@ services:
         condition: service_started
     volumes:
       # https://github.com/supabase/supabase/issues/12661
-      - ./infra/kong/kong.yml:/home/kong/temp.yml:ro,z
-      - ./infra/kong/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
+      - ./infra/api/kong.yml:/home/kong/temp.yml:ro,z
+      - ./infra/api/kong-entrypoint.sh:/home/kong/kong-entrypoint.sh:ro,z
     environment:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /usr/local/kong/kong.yml
@@ -83,9 +83,9 @@ services:
     restart: unless-stopped
     volumes:
       # Must be superuser to alter reserved role
-      - ./infra/postgres/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./infra/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
       # Initialize the database settings with JWT_SECRET and JWT_EXP
-      - ./infra/postgres/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      - ./infra/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
       # Initialize database extensions, schemas, tables and functions
       - ./web/supabase/snippets/schemas.sql:/docker-entrypoint-initdb.d/init-scripts/99-schemas.sql:Z
       # PGDATA directory is persisted between restarts
