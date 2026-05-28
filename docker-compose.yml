@@ -26,8 +26,6 @@ services:
     depends_on:
       kong:
         condition: service_healthy
-    extra_hosts:
-      - "localhost:host-gateway"
 
   kong:
     container_name: supabase-kong
@@ -81,7 +79,7 @@ services:
 
   db:
     container_name: supabase-db
-    image: supabase/postgres:17.6.1.121
+    image: supabase/postgres:17.6.1.127
     restart: unless-stopped
     volumes:
       # Must be superuser to alter reserved role
@@ -136,7 +134,7 @@ services:
 
   auth:
     container_name: supabase-auth
-    image: supabase/gotrue:v2.188.1
+    image: supabase/gotrue:v2.189.0
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health" ]
@@ -202,7 +200,7 @@ services:
 
   storage:
     container_name: supabase-storage
-    image: supabase/storage-api:v1.54.1
+    image: supabase/storage-api:v1.58.17
     restart: unless-stopped
     depends_on:
       db:

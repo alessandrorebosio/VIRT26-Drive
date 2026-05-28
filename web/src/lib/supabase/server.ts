@@ -23,35 +23,47 @@ export async function createClient() {
 
 	return createServerClient(
 		process.env.NEXT_PUBLIC_SUPABASE_URL!,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-		{
-			cookies: {
-				/**
-				 * Retrieves all cookies from the current incoming request.
-				 * @returns {Array<{ name: string; value: string }>} An array of cookie objects.
-				 */
-				getAll() {
-					return cookieStore.getAll();
-				},
-				/**
-				 * Sets or updates cookies in the current response context.
-				 * * @note The `catch` block safely suppresses exceptions when this method is implicitly 
-				 * called from a Server Component (where mutating cookies is forbidden by Next.js architecture). 
-				 * This behavior is safe to ignore if you have a middleware/proxy refreshing user sessions.
-				 * * @param {Array<{ name: string; value: string; options: any }>} cookiesToSet - Array of cookies to persist.
-				 */
-				setAll(cookiesToSet) {
-					try {
-						cookiesToSet.forEach(({ name, value, options }) =>
-							cookieStore.set(name, value, options),
-						);
-					} catch {
-						// The `setAll` method was called from a Server Component.
-						// This can be ignored if you have proxy refreshing
-						// user sessions.
-					}
-				},
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+		global: {
+			fetch: (url, options) => {
+				if
+					(process.env.SUPABASE_INTERNAL_URL) {
+					return fetch(
+						url.toString().replace(
+							process.env.NEXT_PUBLIC_SUPABASE_URL!,
+							process.env.SUPABASE_INTERNAL_URL
+						),
+						options,
+					);
+				} return fetch(url, options);
 			},
 		},
-	);
+		cookies: {
+			/**
+			 * Retrieves all cookies from the current incoming request.
+			 * @returns {Array<{ name: string; value: string }>} An array of cookie objects.
+			 */
+			getAll() {
+				return cookieStore.getAll();
+			},
+			/**
+			 * Sets or updates cookies in the current response context.
+			 * * @note The `catch` block safely suppresses exceptions when this method is implicitly 
+			 * called from a Server Component (where mutating cookies is forbidden by Next.js architecture). 
+			 * This behavior is safe to ignore if you have a middleware/proxy refreshing user sessions.
+			 * * @param {Array<{ name: string; value: string; options: any }>} cookiesToSet - Array of cookies to persist.
+			 */
+			setAll(cookiesToSet) {
+				try {
+					cookiesToSet.forEach(({ name, value, options }) =>
+						cookieStore.set(name, value, options),
+					);
+				} catch {
+					// The `setAll` method was called from a Server Component.
+					// This can be ignored if you have proxy refreshing
+					// user sessions.
+				}
+			},
+		},
+	});
 }
