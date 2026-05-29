@@ -62,6 +62,12 @@ export function useUser() {
         })
     }, [getUser])
 
+    useEffect(() => {
+        const handleUpdate = () => getUser(true)
+        window.addEventListener("user-profile-updated", handleUpdate)
+        return () => window.removeEventListener("user-profile-updated", handleUpdate)
+    }, [getUser])
+
     /**
      * Resolves a user-friendly display name.
      */

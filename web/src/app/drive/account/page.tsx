@@ -12,14 +12,14 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 
 export default function AccountPage() {
-    const { 
-        user, 
-        profile, 
-        loading, 
-        isUpdatingProfile, 
-        isUpdatingPassword, 
-        updateProfile, 
-        updatePassword 
+    const {
+        user,
+        profile,
+        loading,
+        isUpdatingProfile,
+        isUpdatingPassword,
+        updateProfile,
+        updatePassword
     } = useAccount()
 
     const [username, setUsername] = useState<string | undefined>(undefined)
@@ -30,20 +30,31 @@ export default function AccountPage() {
 
     const handleProfileSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        await updateProfile(currentUsername)
-        window.location.reload()
+
+        try {
+            await updateProfile(currentUsername)
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     const handlePasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
         if (password !== confirmPassword) {
             return toast.error("Passwords do not match")
         }
         if (password.length < 6) {
             return toast.error("Password must be at least 6 characters")
         }
-        await updatePassword(password)
-        window.location.reload()
+
+        try {
+            await updatePassword(password)
+            setPassword("")
+            setConfirmPassword("")
+        } catch (error) {
+            console.error(error)
+        }
     }
 
     if (loading) {

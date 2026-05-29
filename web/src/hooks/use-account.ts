@@ -57,6 +57,7 @@ export function useAccount() {
 
             toast.success("Profile updated successfully")
             await refresh()
+            window.dispatchEvent(new Event("user-profile-updated"))
         } catch (error) {
             const err = error as Error
             console.error("Profile update error:", err)
