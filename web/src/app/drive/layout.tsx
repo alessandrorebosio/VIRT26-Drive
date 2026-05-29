@@ -73,8 +73,6 @@ export default function DriveLayout({
             </SidebarMenuItem>
         )), [pathname])
 
-    const name = profile?.username || displayName
-
     return (
         <SidebarProvider>
             <Sidebar variant="floating" collapsible="icon">
@@ -127,7 +125,7 @@ export default function DriveLayout({
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <span className="truncate font-semibold">{name}</span>
+                                                    <span className="truncate font-semibold">{displayName}</span>
                                                     <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                                                 </>
                                             )}
@@ -147,7 +145,7 @@ export default function DriveLayout({
                                                 <UserIcon className="size-4" />
                                             </div>
                                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                                <span className="truncate font-semibold">{name}</span>
+                                                <span className="truncate font-semibold">{displayName}</span>
                                                 <span className="truncate text-xs text-muted-foreground">{user?.email}</span>
                                             </div>
                                         </div>

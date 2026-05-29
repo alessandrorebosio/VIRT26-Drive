@@ -1,10 +1,7 @@
-set check_function_bodies = off;
+SET check_function_bodies = off;
 
-CREATE OR REPLACE FUNCTION public.create_storage_policies()
- RETURNS void
- LANGUAGE plpgsql
- SECURITY DEFINER
-AS $function$
+CREATE OR REPLACE FUNCTION create_storage_policies()
+RETURNS void AS $$
 BEGIN
     EXECUTE 'create policy "Give users access to own folder 1m0cqf_0"
       on "storage"."objects"
@@ -34,5 +31,8 @@ BEGIN
       to public
     using (((bucket_id = ''files''::text) AND (( SELECT (auth.uid())::text AS uid) = (storage.foldername(name))[1])))';
 END;
-$function$
-;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM authenticated;

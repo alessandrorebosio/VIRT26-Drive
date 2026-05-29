@@ -39,43 +39,43 @@ create policy "Users can insert their own files"
   as permissive
   for insert
   to authenticated
-with check ((auth.uid() = user_id));
+with check (((SELECT auth.uid()) = user_id));
 
 create policy "Users can update their own files"
   on "public"."files"
   as permissive
   for update
   to authenticated
-using ((auth.uid() = user_id));
+using (((SELECT auth.uid()) = user_id));
 
 create policy "Users can view their own files"
   on "public"."files"
   as permissive
   for select
   to authenticated
-using ((auth.uid() = user_id));
+using (((SELECT auth.uid()) = user_id));
 
 create policy "Users can insert their own profile"
   on "public"."profiles"
   as permissive
   for insert
   to authenticated
-with check ((auth.uid() = id));
+with check (((SELECT auth.uid()) = id));
 
 create policy "Users can only update their own profile"
   on "public"."profiles"
   as permissive
   for update
   to authenticated
-using ((auth.uid() = id))
-with check ((auth.uid() = id));
+using (((SELECT auth.uid()) = id))
+with check (((SELECT auth.uid()) = id));
 
 create policy "Users see themselves"
   on "public"."profiles"
   as permissive
   for select
   to authenticated
-using ((auth.uid() = id));
+using (((SELECT auth.uid()) = id));
 
 CREATE OR REPLACE FUNCTION create_storage_policies()
 RETURNS void AS $$
@@ -108,4 +108,8 @@ BEGIN
       to public
     using (((bucket_id = ''files''::text) AND (( SELECT (auth.uid())::text AS uid) = (storage.foldername(name))[1])))';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.create_storage_policies() FROM authenticated;
